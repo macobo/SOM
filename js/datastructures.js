@@ -14,7 +14,8 @@
 	// Circle indicating current position
 	indicatorStyle = {
 	    fillColor: "#F00", 
-	    strokeColor: "#000"
+	    strokeColor: "#000",
+	    radius: 10
 	};
 	// circle(s) denoting previous positions.
 	wayPostStyle = {
@@ -30,51 +31,58 @@
 	    return new Symbol(circle);
 	}();
 
-	function Neuron(point) {
+	function NeuronPath(point) {
 		this.path = new Path();
+		this.path.style = pathStyle;
 		this.pathGroup = new Group();
 		addToPath(this, point);
-		this.indicator = new Circle(point, indicatorStyle.radius);
+		this.indicator = new Path.Circle(point, indicatorStyle.radius);
 		this.indicator.style = indicatorStyle;
 	}
 
 	// adds a point to path
-	Neuron.prototype.add = function(point) {
+	NeuronPath.prototype.add = function(point) {
 		addToPath(this, translate(point));
 	}
 
 	// moves the indicator along some segment to part
-	Neuron.prototype.moveIndicator = function(segment, part) {
-		var curve = this.path.curves[segment];
+	NeuronPath.prototype.moveIndicator = function(segment, part) {
+		if (this.segmentCount() == 0)
+			return;
+		var curve = this.path.curves[segment % this.segmentCount()];
 		this.indicator.position = curve.getPoint(part);
 	}
 
 	// change the color of the indicator
-	Neuron.prototype.changeColor = function(newFillColor) {
+	NeuronPath.prototype.changeColor = function(newFillColor) {
 		this.indicator.fillColor = newFillColor;
 	}
 
+	NeuronPath.prototype.segmentCount = function() { return this.path.curves.length; }
+
 	// updates all the coordinates using translate() and scaled()
 	// TODO:
-	Neuron.prototype.update = function() {
+	NeuronPath.prototype.update = function() {
 
 	}
 
 	function addToPath(neuron, point) {
+		console.log(neuron, point);
 	    neuron.path.add(point);
 	    neuron.path.smooth();
 	    // how to move them later
-	    neuron.group.addChild(
-	    	cap.place(point)
+	    neuron.pathGroup.addChild(
+	    	wayPost.place(point)
 	    );
 	}
 
-	window.Neuron = Neuron;
+	window.NeuronPath = NeuronPath;
+	console.log("ready");
 })();
 
 /*
 The plan:
-Each "Neuron" is an object containing the path of this neuron as well as the circle of this neuron.
+Each "NeuronPath" is an object containing the path of this NeuronPath as well as the circle of this NeuronPath.
 In the same scope exists the settings, etcetc. (also the current position of the circle)
 
 There's a method move(value) which appends a new value at end, updates, smoothes
@@ -89,3 +97,38 @@ used within logic to coordinates shown in canvas at the moment (used for scaling
 	Global method translate(Point), scaled(size)
 If so, there's a need for a update method which updates the path as needed.
 */
+
+neurons = [
+new NeuronPath(new Point(300, 300)), 
+new NeuronPath(new Point(0,0)),
+new NeuronPath(new Point(400, 400))
+];
+//neurons[0].add(new Point(400, 350));
+console.log(neurons);
+var lastTime = 0, x = 0;
+var timeframe = 0.5;
+var target = 0;
+var active = 0;
+
+function onFrame(event) {
+    x = (event.time - lastTime) / timeframe;
+    //console.log(x, event.time, lastTime, neurons[active]);
+    if (x >= 1) {
+        target = (target + 1);
+        x = 0;
+        lastTime = event.time;
+    }
+    //console.log(neuron, neuron.indicator.position);
+    for (var i = 0; i < neurons.length; i++)
+    	neurons[i].moveIndicator(target, x);
+    
+}
+
+function onMouseDown(event) {
+	target = 0;
+    neurons[active].add(event.point);
+}
+
+function onKeyDown(event) {
+	active = (active+1) % neurons.length;
+}

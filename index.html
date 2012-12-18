@@ -30,79 +30,7 @@
         <script type="text/javascript" src="js/paper.js"></script>
         <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="js/functional.min.js"></script>
-        <script type="text/paperscript" canvas="canvas">
-Functional.install();
-canvas.height = window.innerHeight-10;
-canvas.width = window.innerWidth-10;
-// scaling, scrolling, etc
-window.translate = function(point) { return point; }
-window.scaled = function(size) { return size; }
-
-var cap = function createCap() {
-    var circle = new Path.Circle(new Point(0,0), 3);
-    circle.style = {fillColor: "#777"};
-    circle.opacity = 0.8;
-    return new Symbol(circle);
-}();
-
-
-targets = [new Point(30, 30), new Point(120, 100)];
-var path = new Path();
-map(add, targets);
-
-//path.closed = true;
-path.style = {
-    strokeColor:"#60F",
-    strokeWidth: 2,
-    dashArray: [3, 3],
-    stokeCap: 'round',
-};
-path.smooth();
-
-// draw the circle
-var circle = new Path.Circle(targets[0], 10);
-circle.style = {
-    fillColor: "#F00", 
-    strokeColor: "#000"
-};
-
-// target to move to
-var target = path.firstCurve;
-var x = 0;
-var lastTime = 0;
-var timeframe = 1;
-
-// defined vars for onFrame
-var delta = new Point(0, 0);
-
-function onFrame(event) {
-    x = (event.time - lastTime) / timeframe;
-    if (x >= 1) {
-        target = target.next;
-        if (target == null)
-            target = path.firstCurve;
-        //console.log(event.time - lastTime, x);
-        x = 0;
-        lastTime = event.time;
-    }
-    
-    circle.position = target.getPoint(x);
-}
-
-
-function add(point) {
-    if (path.group == null) {
-        path.group = new Group();
-    }
-    path.add(point);
-    path.smooth();
-    path.group.addChild(cap.place(point));
-}
-
-function onMouseDown(event) {
-    add(event.point);
-}
-        </script>
+        <script type="text/paperscript" src="js/datastructures.js" canvas="canvas"></script>
     </head>
     
     <body>
@@ -113,5 +41,13 @@ function onMouseDown(event) {
 	
 	<div id="footer">Project for course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
 	<br/>Karl-Aksel Puulmann, fall 2012.</div>
+        <script type="text/paperscript">
+Functional.install();
+canvas.height = window.innerHeight-10;
+canvas.width = window.innerWidth-10;
+// scaling, scrolling, etc
+window.translate = function(point) { return point; }
+window.scaled = function(size) { return size; }
+        </script>
     </body>
 </html>
