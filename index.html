@@ -3,7 +3,7 @@
     <head>
         <style>
         body {
-            background-color: #DDDDDD;
+            background-color: #25adf0;
             font: 30px sans-serif;
             margin: 0px;
         }
@@ -14,6 +14,7 @@
             width:  100%;
             height: 100%;
             margin: 0px;
+            overflow: hidden;
         }
 	    #footer {
 			bottom: 5px;
@@ -33,6 +34,9 @@
 Functional.install();
 canvas.height = window.innerHeight-10;
 canvas.width = window.innerWidth-10;
+// scaling, scrolling, etc
+window.translate = function(point) { return point; }
+window.scaled = function(size) { return size; }
 
 var cap = function createCap() {
     var circle = new Path.Circle(new Point(0,0), 3);
@@ -102,11 +106,12 @@ function onMouseDown(event) {
     </head>
     
     <body>
+    
     <div id="mainContainer">
         <canvas id="canvas" resize keepalive="true"></canvas>
     </div>
 	
-	<div id="footer">Experiments for project in course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
+	<div id="footer">Project for course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
 	<br/>Karl-Aksel Puulmann, fall 2012.</div>
     </body>
 </html>
