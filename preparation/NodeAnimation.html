@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+        body {
+            background-color: #DDDDDD;
+            font: 30px sans-serif;
+            margin: 0px;
+        }
+        body {
+            font-size: 11px;
+        }
+        #mainContainer {
+            width:  100%;
+            height: 100%;
+            margin: 0px;
+        }
+	    #footer {
+			bottom: 5px;
+			right: 5px;
+			position: fixed;
+			font-family:verdana;
+			font-size: 13px;
+			text-align: right;
+	    }
+        </style>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+        <title>Tile animation</title>
+        <script type="text/javascript" src="paper.js"></script>
+        <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+        <script type="text/javascript" src="http://osteele.com/sources/javascript/functional/functional.min.js"></script>
+        <script type="text/paperscript" canvas="canvas">
+Functional.install();
+canvas.height = window.innerHeight-10;
+canvas.width = window.innerWidth-10;
+
+var cap = function createCap() {
+    var circle = new Path.Circle(new Point(0,0), 3);
+    circle.style = {fillColor: "#777"};
+    circle.opacity = 0.8;
+    return new Symbol(circle);
+}();
+
+
+targets = [new Point(30, 30), new Point(120, 100)];
+var path = new Path();
+map(add, targets);
+
+//path.closed = true;
+path.style = {
+    strokeColor:"#60F",
+    strokeWidth: 2,
+    dashArray: [3, 3],
+    stokeCap: 'round',
+};
+path.smooth();
+console.log(path.segments);
+
+// draw the circle
+var circle = new Path.Circle(targets[0], 10);
+circle.style = {
+    fillColor: "#F00", 
+    strokeColor: "#000"
+};
+console.log("circle", circle);
+
+// target to move to
+var target = path.firstCurve;
+var x = 0;
+var lastTime = 0;
+var timeframe = 1;
+
+// defined vars for onFrame
+var delta = new Point(0, 0);
+vpath = path;
+
+function onFrame(event) {
+    if (x >= 1) {
+        target = target.next;
+        if (target == null)
+            target = path.firstCurve;
+        console.log(event.time - lastTime, x);
+        x = 0;
+        lastTime = event.time;
+    }
+    x = (event.time - lastTime) / timeframe;
+    circle.position = target.getPoint(x);
+}
+
+
+function add(point) {
+    if (path.group == null) {
+        path.group = new Group();
+    }
+    path.add(point);
+    path.smooth();
+    path.group.addChild(cap.place(point));
+}
+
+function onMouseDown(event) {
+    add(event.point);
+}
+a = cap;
+        </script>
+    </head>
+    
+    <body>
+    <div id="mainContainer">
+        <canvas id="canvas" resize keepalive="true"></canvas>
+    </div>
+	
+	<div id="footer">Experiments for project in course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
+	<br/>Karl-Aksel Puulmann, fall 2012.</div>
+    </body>
+</html>
