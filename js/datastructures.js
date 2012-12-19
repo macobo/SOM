@@ -35,14 +35,9 @@
 		this.path = new Path();
 		this.path.style = pathStyle;
 		this.pathGroup = new Group();
-		addToPath(this, point);
+		this.add(point);
 		this.indicator = new Path.Circle(point, indicatorStyle.radius);
 		this.indicator.style = indicatorStyle;
-	}
-
-	// adds a point to path
-	NeuronPath.prototype.add = function(point) {
-		addToPath(this, translate(point));
 	}
 
 	// moves the indicator along some segment to part
@@ -54,7 +49,7 @@
 	}
 
 	// change the color of the indicator
-	NeuronPath.prototype.changeColor = function(newFillColor) {
+	NeuronPath.prototype.setColor = function(newFillColor) {
 		this.indicator.fillColor = newFillColor;
 	}
 
@@ -66,17 +61,59 @@
 
 	}
 
-	function addToPath(neuron, point) {
-		console.log(neuron, point);
-	    neuron.path.add(point);
-	    neuron.path.smooth();
+	// adds a point to path
+	NeuronPath.prototype.add = function(point) {
+		point = translate(point);
+		console.log(this, point);
+	    this.path.add(point);
+	    this.path.smooth();
 	    // how to move them later
-	    neuron.pathGroup.addChild(
+	    this.pathGroup.addChild(
 	    	wayPost.place(point)
 	    );
 	}
 
+	// Neuron - datastructure containing the info
+	// startValue - the initial value of the neuron.
+	function Neuron(startValue) {
+		var point = new Point(startValue);
+		this.data = [startValue];
+		this.path = new NeuronPath(point);
+	} 
+
+	// Gives the value of data at the given moment.
+	// If no parameter is given, the last datapoint is returned.
+	Neuron.prototype.state = function(moment) {
+		if (moment === undefined)
+			moment = this.data.length-1;
+		return this.data[moment];
+	} 
+
+	// Distance (squared) to other neuron
+	Neuron.prototype.distance(neuron) {
+		var a = new Point(this.state());
+		var b = new Point(neuron.state());
+		return a.distance(b);
+	}
+
+	// Calculates the influence over distance, with the neighborhood radius being radius.
+	function influence(distance, radius) {
+		return exp(-1.0 * distance * distance / (2 * radius * radius));
+	}
+
+	// Calculates the neighborhood radius at given iteration
+	function neighborhoodRadius(iteration, timeConstant) {
+		return mapRadius * exp(-1.0 * iteration / timeConstant);
+	}
+
+	// Calculates the learning rate at iteration
+	function learningRate(iteration, learningConstant) {
+		
+	}
+
+
 	window.NeuronPath = NeuronPath;
+	window.Neuron = Neuron;
 	console.log("ready");
 })();
 
@@ -99,9 +136,10 @@ If so, there's a need for a update method which updates the path as needed.
 */
 
 neurons = [
-new NeuronPath(new Point(300, 300)), 
-new NeuronPath(new Point(0,0)),
-new NeuronPath(new Point(400, 400))
+	new NeuronPath(new Point(300, 300)), 
+	new NeuronPath(new Point(0,0)),
+	new NeuronPath(new Point(400, 400)),
+	new NeuronPath(new Point(700, 500))
 ];
 //neurons[0].add(new Point(400, 350));
 console.log(neurons);
@@ -130,5 +168,7 @@ function onMouseDown(event) {
 }
 
 function onKeyDown(event) {
+	neurons[active].setColor("#FFF");
 	active = (active+1) % neurons.length;
+	neurons[active].setColor("#F00");
 }
