@@ -141,8 +141,8 @@ var startPoint = null;
 var dragging = false;
 function onMouseDrag(event) {
 	dragging = dragging || (Math.abs(event.point.x - startPoint.x) > 9);
-	if (dragging && Loader.inBar(event.point)) {
-		Loader.setRange(startPoint, event.point);
+	if (dragging && loader.inBar(event.point)) {
+		loader.setRange(startPoint, event.point);
 	}
 }
 

@@ -1,15 +1,32 @@
-// Assumes Functional.js, paper.js are loaded.
-// Should be loaded as paperscript
+// TODO: PaperPath should be generated on demand, data constructor.
+
+function selectRandom(data) {
+	return data[Math.floor(Math.random() * data.length) ];
+}
+
+// Function that returns a function that counts the number of
+// times it is invoked. When the number reaches 'count', 
+// function callback is called (once).
+function counterCallback(callback, count) {
+	return (function() {
+		count--;
+		if (count == 0)
+			callback.apply(arguments);
+	});
+}
 
 (function() {
 	// Enum of states
 	var mapRadius = 400;
-	var timeConstant = 300 / Math.log(mapRadius);
+	var iterations = 300;
+	var timeConstant = iterations / Math.log(mapRadius);
 	var learningConstant = 0.2;
 	window.states = Object.freeze({
 		NONE: 0,
 		CREATING_DATA: 1,
-		ITERATING: 2
+		START_ITERATING: 2,
+		ITERATING: 3,
+		BROWSING: 4,
 	});
 
 	window.pathLayer = new Layer();
@@ -81,12 +98,6 @@
 
 	NeuronPath.prototype.segmentCount = function() { return this.path.curves.length; }
 
-	// updates all the coordinates using translate() and scaled()
-	// TODO:
-	NeuronPath.prototype.update = function() {
-
-	}
-
 	// adds a point to path
 	NeuronPath.prototype.add = function(point) {
 		point = translate(point);
@@ -126,14 +137,6 @@
 		},
 	});
 
-	Neuron.setStyles = function(style, prevStyle) {
-		var holders = prevStyle.holders;
-		prevStyle.holders = [];
-		_.each(holders, function(neuron) {
-			neuron.setStyle(style);
-		})
-	}
-
 	Neuron.prototype.setStyle = function(style) {
 		if (style.indicator !== undefined) {
 			_.extend(this.path.indicator.style, style.indicator);
@@ -154,13 +157,19 @@
 		var point = new Point(newState);
 		if (!Array.isArray(newState))
 			newState = [newState.x, newState.y];
-
 		if (this.path === undefined) {
 			this.path = new NeuronPath(point);
-		} else {
-			this.path.add(point);
 		}
 		this.data.push(newState);
+	}
+
+	Neuron.prototype.updatePath = function() {
+		for (var i = this.path.segmentCount(); i < this.data.length; i++) {
+			var point = new Point(this.data[i]);
+			//console.log(this.data[i], point);
+			this.path.add(point);
+		}
+		this.path.moveIndicator(this.data.length-1, 1);
 	}
 
 	// Distance from current state (squared) to other neurons current state
@@ -190,7 +199,7 @@
 	}
 
 	// Updates the neuron (by adding a new state)
-	Neuron.prototype.update = function(BMU, vector, iteration) {
+	Neuron.prototype.update = function(BMU, vector, iteration, callback) {
 		var R = neighborhoodRadius(iteration, timeConstant);
 		var distance = this.distance(BMU);
 		//if (distance > R) return;
@@ -201,13 +210,13 @@
 		var state = this.state(); 
 		if (distance <= R) {
 			this.setStyle(Neuron.MATCH);
-			for (var i = 0; i < vector.length; i++) {
+			for (var i = 0; i < vector.length; i++)
 				state[i] += L * I * (vector[i] - state[i]);
-			}
-
 		}
 		//console.log("Updating ", this, "adding new state ", state);
 		this.addState(state);
+		this.updatePath();
+		if (callback !== undefined) callback();
 	}
 
 	Neuron.findBMU = function(neurons, vector) {
@@ -218,16 +227,6 @@
 		});
 		//console.log(point, closest);
 		return closest;
-	}
-
-	Neuron.updateAll = function(neurons, vector, iteration) {
-		var BMU = Neuron.findBMU(neurons, vector);
-		console.log("BMU: ", BMU);
-		_.map(neurons, function(neuron) { 
-			neuron.setStyle(Neuron.NEUTRAL);
-			return neuron.update(BMU, vector, iteration); 
-		});
-		BMU.setStyle(Neuron.BMU);
 	}
 
 	// Generates new neurons within the box created by boxHighLeft, boxLowRight.
@@ -245,6 +244,33 @@
 			neurons.push(new Neuron(point));
 		}
 		return neurons;
+	}
+
+	var iteration = 0;
+	Neuron.nextIteration = function(data, neurons, callback) {
+		_.each(data, function(d) { d.setStyle(Neuron.DATA) });
+		var vector = selectRandom(data);
+		vector.setStyle(Neuron.NEUTRAL);
+		//console.log("Data vector", vector.state());
+		//Neuron.updateAll(neurons, vector.state(), iteration);
+		var BMU = Neuron.findBMU(neurons, vector);
+		//console.log("BMU: ", BMU);
+		var doneCallback = counterCallback(function() {
+			iteration += 1;
+			console.log(iteration);
+			infoText.content = "iteration: "+(iteration+1);
+			callback();
+		}, neurons.length);
+		_.each(neurons, function(neuron) { 
+			neuron.setStyle(Neuron.NEUTRAL);
+			neuron.update(
+				BMU, 
+				vector.state(),
+				iteration,
+				doneCallback
+			); 
+		});
+		BMU.setStyle(Neuron.BMU);
 	}
 
 	var infoText = new PointText(new Point(0,20))
@@ -275,21 +301,7 @@ function onMouseDown(event) {
 		data.push(new Neuron(event.point));
 	}
 }
-
-function selectRandom(data) {
-	return data[Math.floor(Math.random() * data.length) ];
-}
-var iteration = 0;
-
-function nextIteration(data, neurons) {
-	_.each(data, function(d) { d.setStyle(Neuron.DATA) });
-	var vector = selectRandom(data);
-	vector.setStyle(Neuron.NEUTRAL);
-	//console.log("Data vector", vector.state());
-	Neuron.updateAll(neurons, vector.state(), iteration);
-	iteration += 1;
-}
-
+/*
 function onFrame(event) {
 	if (state == states.ITERATING) {
 		//console.log(event.delta);
@@ -304,18 +316,23 @@ function onFrame(event) {
 	    });
 	}
 }
-
+*/
 function onKeyDown(event) {
 	if (state == states.CREATING_DATA && data.length > 10) {
+		state = states.START_ITERATING;
+		neurons = Neuron.generate(100);
+	} else if (state == states.START_ITERATING) {
+		var iterations = 30;
+		var callback = function() {
+			iterations--;
+			if (iterations > 0) 
+				setTimeout(function() { 
+					Neuron.nextIteration(data, neurons, callback); 
+				}, 100);
+		}
+		callback();
 		state = states.ITERATING;
-		neurons = Neuron.generate(109);
-	} else if (state == states.ITERATING) {
-		nextIteration(data, neurons);
 	}
-}
-
-function onMouseMove(event) {
-	infoText.content = ""+event.event.x+" "+event.event.y;
 }
 
 
@@ -335,46 +352,4 @@ Ideas: instead of using raw canvas x,y coordinates, there should be a method to 
 used within logic to coordinates shown in canvas at the moment (used for scaling, etc).
 	Global method translate(Point), scaled(size)
 If so, there's a need for a update method which updates the path as needed.
-*/
-
-/* 
-// Implementation for points flying around - used for testing
-neurons = [
-	new NeuronPath(new Point(300, 300)), 
-	new NeuronPath(new Point(0,0)),
-	new NeuronPath(new Point(400, 400)),
-d	new NeuronPath(new Point(700, 500))
-];
-//neurons[0].add(new Point(400, 350));
-console.log(neurons);
-var lastTime = 0, x = 0;
-var timeframe = 0.5;
-var target = 0;
-var active = 0;
-
-function onFrame(event) {
-    x = (event.time - lastTime) / timeframe;
-    //console.log(x, event.time, lastTime, neurons[active]);
-    if (x >= 1) {
-        target = (target + 1);
-        x -= 1;
-        lastTime = event.time;
-    }
-    //console.log(neuron, neuron.indicator.position);
-    for (var i = 0; i < neurons.length; i++)
-    	neurons[i].moveIndicator(target, x);
-    
-}
-
-function onMouseDown(event) {
-	target = 0;
-    neurons[active].add(event.point);
-}
-
-function onKeyDown(event) {
-	neurons[active].setColor("#FFF");
-	active = (active+1) % neurons.length;
-	neurons[active].setColor("#F00");
-}
-
 */
