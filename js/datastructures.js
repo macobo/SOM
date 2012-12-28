@@ -54,6 +54,8 @@ Neuron = (function(constants, status) {
 		// Array of Point objects
 		this.segments = [];
 		this.status = [];
+		// TODO: Path.style?
+		this.path = new Path();
 	}
 
 	// If parameter is an array, it is first converted to Point
@@ -78,9 +80,9 @@ Neuron = (function(constants, status) {
 
 
 	/*
-		STUFF related to calculating next states
+		== Calculating next states ==
 	*/
-	
+
 	var dimensions = ["x", "y"];
 	// Updates the neuron (by adding a new state at the end)
 	// Once updating is done, callback (if provided) is called
@@ -126,5 +128,38 @@ Neuron = (function(constants, status) {
 		});
 	}
 
+	/*
+		Drawing current states
+	*/
+	// Builds (if neccesary) the path from [from -> to] (inclusive)
+	Neuron.prototype.showPath = function(from, to) {
+		// nothing in the path or no overlap
+		if (this.path.segments.length == 0 || this.prevTo < from || this.prevFrom > to) {
+			this.path.removeChildren();
+			this.prevTo = to;
+			this.prevFrom = from;
+			this.path.addSegments(this.segments.slice(from, to+1));
+			return;
+		}
+		// remove from end
+		if (to < this.prevTo)
+			this.path.removeChildren(to-this.prevFrom);
+		// append
+		else
+			this.path.addSegments(this.segments.slice(this.prevTo+1, to+1));
+		// remove from start
+		if (from > this.prevFrom)
+			this.path.removeChildren(0, from-this.prevFrom);
+		// prepend
+		else
+			this.path.addSegments(this.segments.slice(from, this.prevFrom));
+		this.prevTo = to;
+		this.prevFrom = from;
+	}
 
+	Neuron.showPaths = function(neurons, from, to) {
+		_.each(neurons, function(neuron) {
+			neuron.showPath(from, to);
+		});
+	}
 })(SOMConstats, NeuronStatus);
