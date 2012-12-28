@@ -17,10 +17,10 @@ function counterCallback(callback, count) {
 
 (function() {
 	// Enum of states
-	var mapRadius = 400;
+	var mapRadius = 500;
 	var iterations = 300;
 	var timeConstant = iterations / Math.log(mapRadius);
-	var learningConstant = 0.2;
+	var learningConstant = 0.1;
 	window.states = Object.freeze({
 		NONE: 0,
 		CREATING_DATA: 1,
@@ -33,10 +33,10 @@ function counterCallback(callback, count) {
 	// Styles, used for configuration
 	// Path
 	pathStyle = {
-	    strokeColor:"#60F",
-	    strokeWidth: 2,
+	    //strokeColor:"#60F",
+	    //strokeWidth: 2,
 	    //dashArray: [3, 3],
-	    stokeCap: 'round',
+	    //stokeCap: 'round',
 	    radius: 10
 	};
 	// Circle indicating current position
@@ -49,7 +49,7 @@ function counterCallback(callback, count) {
 	wayPostStyle = {
 		fillColor: "#777", 
 		opacity: 0.3,
-		radius: 3,
+		//radius: 3,
 	};
 
 	var wayPost = function createWayPostSymbol() {
@@ -103,7 +103,7 @@ function counterCallback(callback, count) {
 		point = translate(point);
 		//console.log("adding to NeuronPath ",this, point);
 	    this.path.add(point);
-	    this.path.smooth();
+	    //this.path.smooth();
 	    // how to move them later
 	    this.pathGroup.addChild(
 	    	wayPost.place(point)
@@ -208,10 +208,13 @@ function counterCallback(callback, count) {
 		var I = influence(distance, R);
 		// A prettier way to do it would be nice...
 		var state = this.state(); 
+
 		if (distance <= R) {
 			this.setStyle(Neuron.MATCH);
 			for (var i = 0; i < vector.length; i++)
 				state[i] += L * I * (vector[i] - state[i]);
+		} else {
+			this.setStyle(Neuron.NEUTRAL);
 		}
 		//console.log("Updating ", this, "adding new state ", state);
 		this.addState(state);
@@ -262,7 +265,7 @@ function counterCallback(callback, count) {
 			callback();
 		}, neurons.length);
 		_.each(neurons, function(neuron) { 
-			neuron.setStyle(Neuron.NEUTRAL);
+			
 			neuron.update(
 				BMU, 
 				vector.state(),
@@ -301,34 +304,22 @@ function onMouseDown(event) {
 		data.push(new Neuron(event.point));
 	}
 }
-/*
 function onFrame(event) {
-	if (state == states.ITERATING) {
-		//console.log(event.delta);
-		x = (event.time - lastTime) / timeframe;
-	    if (x >= 1) {
-	        target = (target + 1);
-	        x -= 1;
-	        lastTime = event.time;
-	    }
-	    _.each(neurons, function(neuron) {
-	    	neuron.path.moveIndicator(target, x);
-	    });
-	}
+	//console.log(event);
 }
-*/
+
 function onKeyDown(event) {
 	if (state == states.CREATING_DATA && data.length > 10) {
 		state = states.START_ITERATING;
 		neurons = Neuron.generate(100);
 	} else if (state == states.START_ITERATING) {
-		var iterations = 30;
+		var iterations = 300;
 		var callback = function() {
 			iterations--;
 			if (iterations > 0) 
 				setTimeout(function() { 
 					Neuron.nextIteration(data, neurons, callback); 
-				}, 100);
+				}, 10);
 		}
 		callback();
 		state = states.ITERATING;
