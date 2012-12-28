@@ -103,13 +103,16 @@ Neuron = (function(constants, statuses, styles) {
 		}
 		if (from !== this.path.currentStart || to !== this.path.currentEnd) {
 			this.path.removeSegments();
-			this.path.addSegments(this._segments.slice(from, to+1));
+			//this.path.addSegments(this._segments.slice(from, to+1));
+			var path = this.path;
+			_.each(this._segments.slice(from, to+1), function(p) {
+				path.add(p);
+			})
 			this.path.currentStart = from;
 			this.path.currentEnd = to;
 			this.path.smooth();
 		}
-		console.log(from, to, this.path.segments.length, this.path.curves.length);
-		//this.setIndicator(from, 0);
+		this.setIndicator(to-1, 1);
 
 		return this;
 	}
@@ -139,7 +142,7 @@ Neuron = (function(constants, statuses, styles) {
 			_.extend(this.indicator.style, this._status[0].indicator);
 			this.indicator.position = this._segments[0];
 		} else {
-			_.extend(this.indicator.style, this._status[segment].indicator);
+			_.extend(this.indicator.style, this._status[segment+1].indicator);
 			this.indicator.position = this.getCurve(segment).getPoint(part);
 		}
 		this.indicator.visible = true;
