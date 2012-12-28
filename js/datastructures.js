@@ -13,13 +13,14 @@ Neuron = (function(constants, statuses, styles) {
 	}
 
 	// If parameter is an array, it is first converted to Point
-	Neuron.prototype.addSegment = function(segment, status) {
+	Neuron.prototype.add = function(segment, status) {
 		if (Array.isArray(segment))
 			segment = new Point(segment);
 		if (status === undefined)
 			status = statuses.NEUTRAL;
 		this._segments.push(segment);
 		this._status.push(status)
+		return this; // return a reference to this
 	}
 
 	Neuron.prototype.segmentCount = function() {
@@ -63,7 +64,7 @@ Neuron = (function(constants, statuses, styles) {
 			});
 			newStatus = (this == BMU) ? statuses.BMU : statuses.INRANGE;
 		}
-		this.addSegment(newSegment, newStatus);
+		this.add(newSegment, newStatus);
 		if (callback !== undefined)
 			callback();
 	}
@@ -71,22 +72,22 @@ Neuron = (function(constants, statuses, styles) {
 	// Returns the closest neuron in the bunch
 	Neuron.prototype.findClosest = function(neurons) {
 		var point = this.segment();
-		var closest = _.min(neurons, function (n) { 
-			point.getDistance(n.segment()); 
+		var closest = _.min(neurons, function (n) {
+			return point.getDistance(n.segment()); 
 		});
 		return closest;
 	}
 
 	// Generates the next iteration from current state.
-	// If vector is not supplied as argument, a random vector from data is used.
-	Neuron.nextIteration = function(data, neurons, vector) {
-		if (vector === undefined)
-			vector = selectRandom(data);
+	// TODO: If vector is not supplied as argument, a random vector from data is used.
+	Neuron.nextIteration = function(data, neurons, callback) {
+		var vector = selectRandom(data);
 		var BMU = vector.findClosest(neurons);
 		// Make sure we call the callback once we are done with all the neurons
-		var counter = counterCallback(callback, neurons.length);
+		if (callback !== undefined)
+			var counter = counterCallback(callback, neurons.length);
 		_.each(neurons, function(neuron) {
-			neuron.updateState(vector, BMU, counter);
+			neuron.updateState(vector.segment(), BMU, counter);
 		});
 	}
 
@@ -94,12 +95,23 @@ Neuron = (function(constants, statuses, styles) {
 		Drawing current states
 	*/
 	// Builds (if neccesary) the path from [from -> to] (inclusive)
+	// if no arguments are given, the whole path is drawn
 	Neuron.prototype.showPath = function(from, to) {
-		this.path.removeSegments();
-		this.path.addSegments(this._segments.slice(from, to+1));
-		this.path.currentStart = from;
-		this.path.currentEnd = to;
-		this.path.smooth();
+		if (from === undefined) {
+			from = 0;
+			to = this.segmentCount()-1;
+		}
+		if (from !== this.path.currentStart || to !== this.path.currentEnd) {
+			this.path.removeSegments();
+			this.path.addSegments(this._segments.slice(from, to+1));
+			this.path.currentStart = from;
+			this.path.currentEnd = to;
+			this.path.smooth();
+		}
+		console.log(from, to, this.path.segments.length, this.path.curves.length);
+		//this.setIndicator(from, 0);
+
+		return this;
 	}
 
 	Neuron.showPaths = function(neurons, from, to) {
@@ -111,7 +123,8 @@ Neuron = (function(constants, statuses, styles) {
 	// TODO: functions to toggle the visibility of parts
 
 	Neuron.prototype.getCurve = function(segment) {
-		return this.path.curves[segment - this.path.currentStart];
+		var index = segment - this.path.currentStart;
+		return this.path.curves[index];
 	}
 
 	// If segment is not provided, the last (drawn) segment is assumed
@@ -121,10 +134,37 @@ Neuron = (function(constants, statuses, styles) {
 			segment = this.path.currentEnd-1;
 			part = 1;
 		}
-		_.extend(this.indicator.style, this._status[segment+1]);
-		this.indicator.position = this.getCurve(segment).getPoint(part);
+		// TODO: if part is not given...
+		if (this.segmentCount() == 1) {
+			_.extend(this.indicator.style, this._status[0].indicator);
+			this.indicator.position = this._segments[0];
+		} else {
+			_.extend(this.indicator.style, this._status[segment].indicator);
+			this.indicator.position = this.getCurve(segment).getPoint(part);
+		}
 		this.indicator.visible = true;
+		
+	}
+
+	// returns an array of neurons randomly positioned within the bounds
+	// If no bounds are given, the current window will be used.
+	Neuron.generate = function(limit, bounds) {
+		if (bounds === undefined) {
+			bounds = new Rectangle(
+				new Point(0,0), 
+				new Point(window.innerWidth, window.innerHeight)
+			);
+		}
+		var size = new Point(bounds.size);
+		var result = [];
+		for (var i = 0; i < limit; i++) {
+			var neuron = new Neuron();
+			var point = new Point.random() * size + bounds.topLeft;
+			neuron.add(point, statuses.NEUTRAL);
+			result.push(neuron);
+		}
+		return result;
 	}
 
 	return Neuron;
-})(SOMConstants, NeuronStatus, PathStyles);	
+})(constants, NeuronStatus, PathStyles);	

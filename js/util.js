@@ -1,4 +1,4 @@
-SOMConstants = {
+constants = {
 	radius: 500,
 	iterations: 500,
 	learning: 0.1,
@@ -12,8 +12,16 @@ SOMConstants = {
 		return constants.learning * Math.exp(-1.0 * iteration / constants.time);
 	}
 }
-SOMConstants.time = SOMConstants.iterations / Math.log(SOMConstants.radius);
+constants.time = constants.iterations / Math.log(constants.radius);
 
+
+programStates = Object.freeze({
+	NONE: 0,
+	CREATING_DATA: 1,
+	START_ITERATING: 2,
+	ITERATING: 3,
+	BROWSING: 4,
+});
 
 
 function selectRandom(data) {
