@@ -36,7 +36,10 @@
         <script type="text/javascript" src="js/paper.js"></script>
         <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
-        <script type="text/paperscript" src="js/datastructures.js" canvas="canvas"></script>
+        <script type="text/paperscript" src="js/util.js"></script>
+        <script type="text/paperscript" src="js/styles.js"></script>
+        <script type="text/paperscript" src="js/datastructures.js"></script>
+        <script type="text/paperscript" src="js/logic.js" canvas="canvas"></script>
         <script type="text/paperscript" src="js/progressbar.js" canvas="progressbar"></script>
     </head>
     
@@ -48,15 +51,13 @@
     </div>
     
 	
-	<div id="footer">Project for course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
-	<br/>Karl-Aksel Puulmann, winter 2012.</div>
-        <script type="text/paperscript">
-console.log("hey", canvas);
+	<div id="footer">
+        Project for course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
+	   <br/>Karl-Aksel Puulmann, winter 2012.
+    </div>
+    <script type="text/paperscript">
 canvas.height = window.innerHeight-10;
 canvas.width = window.innerWidth-10;
-// scaling, scrolling, etc
-window.translate = function(point) { return point; }
-window.scaled = function(size) { return size; }
-        </script>
+    </script>
     </body>
 </html>

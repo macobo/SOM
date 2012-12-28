@@ -1,61 +1,17 @@
-// TODO: PaperPath should be generated on demand, data constructor.
+// TODO: PaperPath should be generated on demand, data constructor
 
-function selectRandom(data) {
-	return data[Math.floor(Math.random() * data.length) ];
-}
-
-// Function that returns a function that counts the number of
-// times it is invoked. When the number reaches 'count', 
-// function callback is called (once).
-function counterCallback(callback, count) {
-	return (function() {
-		count--;
-		if (count == 0)
-			callback.apply(arguments);
-	});
-}
-
-var SOMConstats = {
-	radius: 500,
-	iterations: 500,
-	learning: 0.1,
-	influence: function(distance, radius) {
-		return Math.exp(-1.0 * distance * distance / (2 * radius * radius));
-	}
-	neighborhoodRadius: function(iteration, constants) {
-		return constants.radius * Math.exp(-1.0 * iteration / constants.time);
-	}
-	learningRate: function(iteration, constants) {
-		return constants.learning * Math.exp(-1.0 * iteration / constants.time);
-	}
-}
-SOMConstats.time = SOMConstats.iterations / Math.log(SOMConstats.radius);
-
-var NeuronStatus = {
-		DATA: {
-			indicator: {fillColor: "#FFF"},
-		},
-		DATASELECTED: {
-			indicator: {fillColor: "#00F"}
-		},
-		NEUTRAL: {
-			indicator: {fillColor: "#090"},
-		},
-		BMU: {
-			indicator: {fillColor: "#F00"}
-		},
-		INRANGE: {
-			indicator: {fillColor: "#FF0"},
-		},
-	}
-
-Neuron = (function(constants, status) {
-	function Neuron() {
+Neuron = (function(constants, status, styles) {
+	function Neuron(segment) {
 		// Array of Point objects
 		this.segments = [];
 		this.status = [];
-		// TODO: Path.style?
 		this.path = new Path();
+		this.path.style = styles.path;
+		this.indicator = new Path.Circle(new Point(0, 0), styles.indicator.radius);
+		this.indicator.style = styles.indicator;
+		this.indicator.visible = true;
+		if (segment !== undefined)
+			this.addSegment(segment, status.DATA);
 	}
 
 	// If parameter is an array, it is first converted to Point
@@ -162,4 +118,8 @@ Neuron = (function(constants, status) {
 			neuron.showPath(from, to);
 		});
 	}
-})(SOMConstats, NeuronStatus);
+
+	// TODO: functions to toggle the visibility of parts
+
+	return Neuron
+})(SOMConstants, NeuronStatus, PathStyles);
