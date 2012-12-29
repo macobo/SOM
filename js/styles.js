@@ -1,7 +1,7 @@
 PathStyles = {
 	path: {
 	    //strokeColor:"#60F",
-	    //strokeWidth: 2,
+	    strokeWidth: 2,
 	    //dashArray: [3, 3],
 	    //stokeCap: 'round',
 	    radius: 10
@@ -10,6 +10,16 @@ PathStyles = {
 	    fillColor: "#FFF", 
 	    strokeColor: "#000",
 	    radius: 10
+	}
+}
+
+LoadbarStyles = {
+	loaded: {fillColor: "#DDD", opacity: 0.8},
+	loadBar: {fillColor: "#DDD", opacity: 0.3},
+	indicator: {
+		strokeWidth: 3,
+		strokeColor: "#F00",
+		strokeCap: "round"
 	}
 }
 

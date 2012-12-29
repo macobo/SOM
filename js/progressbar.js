@@ -1,17 +1,12 @@
-var Indicator = function() {
+var Indicator = function(styles) {
 	var indicator, range = null;
 	var parent, currentPosition;
 
 	function Indicator(parentRectangle) {
 		parent = parentRectangle;
 		currentPosition = parent.topLeft;
-		indicator = new Path.Line(currentPosition,
-									parent.bottomLeft);
-		indicator.style = {
-			strokeWidth: 3,
-			strokeColor: "#F00",
-			strokeCap: "round"
-		}
+		indicator = new Path.Line(currentPosition, parent.bottomLeft);
+		_.extend(indicator.style, styles.indicator);
 	}
 
 	Indicator.prototype.setPosition = function(where) {
@@ -37,25 +32,25 @@ var Indicator = function() {
 		bottom.x += parent.width * right;
 		var rect = new Rectangle(top, bottom);
 		range = new Path.RoundRectangle(rect, 3);
-		range.style = {
-			strokeWidth: 3,
-			strokeColor: "#F00",
-			strokeCap: "round"
-		}
+		_.extend(range.style, styles.indicator);
 	}
 
 	return Indicator;
-}();
+}(LoadbarStyles);
 
-loader = function(selector) {
+loader = function(selector, styles) {
 	function Loader() {
-		this.loadBar = drawLoader();
+		var rect = drawLoaderBase();
+		this.loadBar = drawLoader(styles.loadBar, 
+			rect.topLeft, rect.bottomRight);
+		this.loaded = null;
 		this.center();
-		this.indicator = new Indicator(this.loadBar.rectangle);
 		this.callbacks = {};
+		this.setLoaded(0.005);
+		this.indicator = new Indicator(this.loadBar.rectangle);
 	}
 
-	function drawLoaderBase(top, bottom) {
+	function drawLoader(style, top, bottom) {
 		var delta = 13;
 		var radius = 20;
 		var rect = new Rectangle(top+delta, bottom-delta)
@@ -66,13 +61,13 @@ loader = function(selector) {
 		var off = delta + 3;
 		var loadRect = new Rectangle(top+off, bottom-off);
 		loadBar = new Path.Rectangle(loadRect);
-		loadBar.fillColor = "#DDD";
-		loadBar.opacity = 0.8;
+		_.extend(loadBar, style);
 		loadBar.rectangle = loadRect;
+		loadBar.radius = radius;
 		return loadBar;
 	}
 
-	function drawLoader() {
+	function drawLoaderBase() {
 		var width = selector.width();
 		var height = selector.height();
 		var rect = new Rectangle(0,0,width,height);
@@ -81,7 +76,7 @@ loader = function(selector) {
 			fillColor: "#333",
 		}
 		shell.opacity = 0.6;
-		return drawLoaderBase(rect.topLeft, rect.bottomRight);
+		return rect;
 	}
 
 	Loader.prototype.center = function() {
@@ -99,21 +94,35 @@ loader = function(selector) {
 	// Returns a number between 0 and 1 - the 
 	Loader.prototype.location = function(x) {
 		var where = (x - this.loadBar.rectangle.left) / this.loadBar.rectangle.width;
-		//console.log("loc", x, where);
 		return Math.min(1, Math.max(0, where));
+	}
+
+	Loader.prototype.setLoaded = function(amount) {
+		if (this.loaded === null) {
+			this.loaded = new Path.Rectangle(this.loadBar.rectangle);
+			_.extend(this.loaded, styles.loaded);
+			this.loaded.rectangle = this.loadBar.rectangle.clone();
+			this.loaded.lastAmount = 1;
+		}
+		// Hack due to otherwise drawing on the wrong canvas
+		var width = this.loadBar.rectangle.width * amount;
+		var height = this.loadBar.rectangle.height;
+		var horScale = amount / this.loaded.lastAmount;
+		this.loaded.scale(horScale, 1, this.loadBar.rectangle.leftCenter);
+		this.loaded.rectangle = new Rectangle(
+			this.loadBar.rectangle.topLeft,
+			new Size(width, height)
+		);
+		this.loaded.lastAmount = amount;
+	}
+
+	Loader.prototype.inBar = function(point) {
+		return point.isInside(this.loaded.rectangle);
 	}
 
 	Loader.prototype.inverseLocation = function(val) {
 		return this.loadBar.rectangle.left + val * this.loadBar.rectangle.width;
 	}
-
-	Loader.prototype.inBar = function(point) {
-		// replace with point.isInside
-		var top = this.loadBar.rectangle.topLeft-2;
-		var bottom = this.loadBar.rectangle.bottomRight+2;
-		return top.x <= point.x && top.y <= point.y && point.x <= bottom.x && point.y <= bottom.y;
-	}
-
 	Loader.prototype.setPosition = function(point) {
 		if (this.inBar(point)) {
 			var where = this.location(point.x);
@@ -132,25 +141,24 @@ loader = function(selector) {
 		if (this.inBar(from) && this.inBar(to)) {
 			var fromX = this.location(from.x);
 			var toX = this.location(to.x);
-			//console.log(fromX, toX);
 			this.indicator.setRange(fromX, toX);
 			if (this.callbacks.setRange)
 				this.callbacks.setRange(from, to);
 		}
 	}
 
-
 	Loader.prototype.addCallbacks = function(pairs) {
 		_.extend(this.callbacks, pairs);
 	}
 
 	return new Loader();
-}($("#progressbar"));
+}($("#progressbar"), LoadbarStyles);
 
 var startPoint = null;
 var dragging = false;
 function onMouseDrag(event) {
-	dragging = dragging || (Math.abs(event.point.x - startPoint.x) > 9);
+	if (!dragging && startPoint !== null)
+		dragging = Math.abs(event.point.x - startPoint.x) > 9;
 	if (dragging && loader.inBar(event.point)) {
 		loader.setRange(startPoint, event.point);
 	}

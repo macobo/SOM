@@ -16,24 +16,21 @@ function onMouseDrag(event) {
 function iterate() {
 	if (handler.iteration < constants.iterations) {
 		handler.nextIteration(function() {
-			handler.showPath();
-			setTimeout(iterate, 30);
+			//handler.showPath();
+			setTimeout(iterate, 20);
 		});
-	}
+	} else 
+		state = programStates.BROWSING;
 }
 
 function onKeyDown(event) {
 	if (state == programStates.CREATING_DATA && data.length > 10) {
-		state = programStates.START_ITERATING;
-		handler = NeuronHandler.generate(data, 100);
+		state = programStates.ITERATING;
+		handler = NeuronHandler.generate(data, constants.neurons);
 		handler.showPath();
 		iterate();
-	} else {
-		handler.nextIteration();
-		handler.showPath();
-		//Neuron.nextIteration(data, neurons, function() {console.log("Done")});
-		//neurons.eachApply("showPath");
-	}
+	} 
 }
 
+// Bug in paper.js?
 function onFrame(event) {}

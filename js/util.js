@@ -1,7 +1,8 @@
 constants = {
 	radius: 1000,
-	iterations: 100,
-	learning: 0.1,
+	iterations: 300,
+	neurons: 100,
+	learning: 0.3,
 	influence: function(distance, radius) {
 		return Math.exp(-1.0 * distance * distance / (2 * radius * radius));
 	},
@@ -18,9 +19,8 @@ constants.time = constants.iterations / Math.log(constants.radius);
 programStates = Object.freeze({
 	NONE: 0,
 	CREATING_DATA: 1,
-	START_ITERATING: 2,
-	ITERATING: 3,
-	BROWSING: 4,
+	ITERATING: 2,
+	BROWSING: 3,
 });
 
 
