@@ -30,7 +30,8 @@ Neuron = (function(constants, statuses, styles) {
 		this._segments.push(segment);
 		this._status.push(status);
 		this.basePath.add(segment);
-		//this.basePath.smooth();
+		if (constants.smoothPaths)
+			this.basePath.smooth();
 		return this; // return a reference to this
 	};
 
@@ -103,6 +104,8 @@ Neuron = (function(constants, statuses, styles) {
 			from = 0;
 			to = this.segmentCount()-1;
 		}
+		if (!constants.showPaths)
+			return this;
 		// TODO: REFACTOR THIS!
 		// The bulk of time is spent on path.smooth() and path.add()
 		if (from !== this.path.currentStart || to !== this.path.currentEnd) {
@@ -115,9 +118,8 @@ Neuron = (function(constants, statuses, styles) {
 			_.each(segments, function(p) { path.add(p); });
 			this.path.currentStart = from;
 			this.path.currentEnd = to;
-			this.path.smooth();
+			//this.path.smooth();
 		}
-		this.setIndicator(to-1, 1);
 		return this;
 	};
 
@@ -125,7 +127,7 @@ Neuron = (function(constants, statuses, styles) {
 
 	Neuron.prototype.getCurve = function(segment) {
 		var index = segment - this.path.currentStart;
-		if (index < 0 || index >= this.path.curves.length)
+		if (isNaN(this.path.currentStart) || index < 0 || index >= this.path.curves.length)
 			return this.basePath.curves[segment];
 		return this.path.curves[index];
 	};
@@ -173,6 +175,9 @@ NeuronHandler = (function(constants, statuses) {
 			iteration: function(iteration) {
 				//loader.indicator.setPosition(iteration / constants.iterations);
 				loader.setLoaded(iteration / constants.iterations);
+			},
+			showState: function(where) {
+				loader.indicator.setPosition(where);
 			}
 		});
 		var self = this;
@@ -245,10 +250,15 @@ NeuronHandler = (function(constants, statuses) {
 	Handler.prototype.showState = function(when) {
 		var result = when * constants.iterations;
 		var iteration = Math.floor(result);
+		if (iteration >= this.iteration)
+			return false;
 		var part = result % 1;
-		console.log(this, this.neurons);
+		this.neurons.eachApply("showPath", 0, iteration+1);
 		this.neurons.eachApply("setIndicator", iteration, part);
-		setSelectedData(this, iteration);
+		setSelectedData(this, iteration+1);
+		if (this.callbacks.showState)
+			this.callbacks.showState(when);
+		return true;
 	};
 	Handler.prototype.showPath = function(from, to) {
 		this.neurons.eachApply("showPath", from, to);

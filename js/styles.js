@@ -1,6 +1,6 @@
 PathStyles = {
 	path: {
-	    //strokeColor:"#60F",
+	    strokeColor:"#60F",
 	    strokeWidth: 2,
 	    //dashArray: [3, 3],
 	    //stokeCap: 'round',

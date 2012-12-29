@@ -1,38 +1,40 @@
 var Indicator = function(styles) {
-	var indicator, range = null;
-	var parent, currentPosition;
 
 	function Indicator(parentRectangle) {
-		parent = parentRectangle;
-		currentPosition = parent.topLeft;
-		indicator = new Path.Line(currentPosition, parent.bottomLeft);
-		_.extend(indicator.style, styles.indicator);
+		this.parent = parentRectangle;
+		this.top = this.parent.topLeft;
+		this.current = 0;
+		this.range = null;
+		this.indicator = new Path.Line(this.top, this.parent.bottomLeft);
+		_.extend(this.indicator.style, styles.indicator);
 	}
 
 	Indicator.prototype.setPosition = function(where) {
-		if (range !== null) {
-			range.remove();
-			range = null;
+		if (this.range !== null) {
+			this.range.remove();
+			this.range = null;
 		}
-		var target = parent.topLeft + new Point(parent.width * where, 0);
-		indicator.translate(target - currentPosition);
-		currentPosition = target;
-		indicator.visible = true;
+		var target = this.parent.topLeft + 
+			new Point(this.parent.width * where, 0);
+		this.indicator.translate(target - this.top);
+		this.top = target;
+		this.current = where;
+		this.indicator.visible = true;
 	}
 
 	Indicator.prototype.setRange = function(left, right) {
-		if (range !== null) {
-			range.remove();
-			range = null;
+		if (this.range !== null) {
+			this.range.remove();
+			this.range = null;
 		}
-		indicator.visible = false;
-		var top = parent.topLeft.clone();
-		top.x += parent.width * left;
-		var bottom = parent.bottomLeft.clone();
-		bottom.x += parent.width * right;
+		this.indicator.visible = false;
+		var top = this.parent.topLeft.clone();
+		top.x += this.parent.width * left;
+		var bottom = this.parent.bottomLeft.clone();
+		bottom.x += this.parent.width * right;
 		var rect = new Rectangle(top, bottom);
-		range = new Path.RoundRectangle(rect, 3);
-		_.extend(range.style, styles.indicator);
+		this.range = new Path.RoundRectangle(rect, 3);
+		_.extend(this.range.style, styles.indicator);
 	}
 
 	return Indicator;
@@ -46,7 +48,7 @@ loader = function(selector, styles) {
 		this.loaded = null;
 		this.center();
 		this.callbacks = {};
-		this.setLoaded(0.005);
+		this.setLoaded(0.001);
 		this.indicator = new Indicator(this.loadBar.rectangle);
 	}
 
@@ -149,6 +151,16 @@ loader = function(selector, styles) {
 
 	Loader.prototype.addCallbacks = function(pairs) {
 		_.extend(this.callbacks, pairs);
+	}
+
+	Loader.prototype.status = function() {
+		var result = {
+			"start": 0,
+			"end": this.loaded.lastAmount,
+			"diff": this.loaded.lastAmount,
+			"indicator": this.indicator.current
+		}
+		return result;
 	}
 
 	return new Loader();

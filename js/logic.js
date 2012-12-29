@@ -8,7 +8,8 @@ tool.minDistance = 10;
 
 function onMouseDrag(event) {
 	if (state == programStates.CREATING_DATA) {
-		var neuron = new Neuron().add(event.point, NeuronStatus.DATA)
+		var neuron = new Neuron().add(event.point, NeuronStatus.DATA);
+		neuron.setIndicator();
 		data.push(neuron.showPath());
 	}
 }
@@ -20,17 +21,40 @@ function iterate() {
 			setTimeout(iterate, 20);
 		});
 	} else 
-		state = programStates.BROWSING;
+		state = programStates.PAUSED;
 }
 
+function play() {
+	console.log("PLAYING");
+	state = programStates.PLAYING;
+	state.start = lastTime;
+}
+
+function pause() {
+	console.log("PAUSING");
+	state = programStates.PAUSED;
+}
+
+var lastTime;
 function onKeyDown(event) {
 	if (state == programStates.CREATING_DATA && data.length > 10) {
 		state = programStates.ITERATING;
 		handler = NeuronHandler.generate(data, constants.neurons);
-		handler.showPath();
+		handler.showState(0);
 		iterate();
-	} 
+	} else if (event.key == "space" && state == programStates.PAUSED) {
+		play();
+	} else if (event.key == "space" && state == programStates.PLAYING) {
+		pause();
+	}
 }
 
-// Bug in paper.js?
-function onFrame(event) {}
+// Bug in paper.js requires this
+function onFrame(event) {
+	lastTime = event.time;
+	if (state == programStates.PLAYING) {
+		var when = (event.time - state.start) / constants.durnation;
+		if (!handler.showState(when))
+			pause();
+	}
+}
