@@ -1,6 +1,6 @@
 constants = {
-	radius: 500,
-	iterations: 500,
+	radius: 1000,
+	iterations: 100,
 	learning: 0.1,
 	influence: function(distance, radius) {
 		return Math.exp(-1.0 * distance * distance / (2 * radius * radius));
@@ -39,14 +39,7 @@ function counterCallback(callback, count) {
 	});
 }
 
-function setState(when) {
-	var result = when * constants.iterations;
-	var iteration = Math.floor(result);
-	var part = result % 1;
-	_.each(neurons, function(neuron) {
-		neuron.setIndicator(iteration, part);
-	});
-}
+
 
 // Let's say we have an array of objects and we want to do
 // for (obj in objects) obj.some_function(..args)

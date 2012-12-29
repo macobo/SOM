@@ -108,6 +108,7 @@ loader = function(selector) {
 	}
 
 	Loader.prototype.inBar = function(point) {
+		// replace with point.isInside
 		var top = this.loadBar.rectangle.topLeft-2;
 		var bottom = this.loadBar.rectangle.bottomRight+2;
 		return top.x <= point.x && top.y <= point.y && point.x <= bottom.x && point.y <= bottom.y;

@@ -1,5 +1,6 @@
 // TODO: PaperPath should be generated on demand, data constructor
 
+paper.install(window);
 Neuron = (function(constants, statuses, styles) {
 	function Neuron() {
 		// Array of Point objects
@@ -9,9 +10,11 @@ Neuron = (function(constants, statuses, styles) {
 		// Invisible path used for calculating curves when no path is drawn
 		this.basePath = new Path(); // used for calculating curves.
 		this.basePath.visible = false;
+		this.basePath._changed = function() {}
 		// Path used for drawing
 		this.path = new Path();
 		this.path.style = styles.path;
+		this.path._changed = function() {}
 		// Indicator showing current position
 		this.indicator = new Path.Circle(new Point(0, 0), styles.indicator.radius);
 		this.indicator.style = styles.indicator;
@@ -27,7 +30,7 @@ Neuron = (function(constants, statuses, styles) {
 		this._segments.push(segment);
 		this._status.push(status)
 		this.basePath.add(segment);
-		this.basePath.smooth();
+		//this.basePath.smooth();
 		return this; // return a reference to this
 	}
 
@@ -65,9 +68,15 @@ Neuron = (function(constants, statuses, styles) {
 		if (distance < R) {
 			var I = constants.influence(distance, R);
 			var L = constants.learningRate(iteration, constants);
+			newSegment = newSegment.add(
+				vector.subtract(newSegment).multiply(L * I)
+			);
+			//newSegment = newSegment + (vector - newSegment) * L * I;
+			/*
 			_.each(["x", "y"], function(dim) {
 				newSegment[dim] += L * I * (vector[dim] - newSegment[dim]);
 			});
+			*/
 			newStatus = (this == BMU) ? statuses.BMU : statuses.INRANGE;
 		}
 		this.add(newSegment, newStatus);
@@ -180,7 +189,8 @@ NeuronHandler = (function(constants, statuses) {
 		var neurons = [];
 		for (var i = 0; i < limit; i++) {
 			var neuron = new Neuron();
-			var point = new Point.random() * size + bounds.topLeft;
+			//var point = new Point.random() * size + bounds.topLeft;
+			var point = new Point.random().multiply(size).add(bounds.topLeft);
 			neuron.add(point, statuses.NEUTRAL);
 			neurons.push(neuron);
 		}
@@ -209,6 +219,8 @@ NeuronHandler = (function(constants, statuses) {
 	}
 
 	function setSelectedData(self, iteration) {
+		if (iteration == undefined)
+			iteration = self.iteration;
 		if (self.prevSelected) {
 			self.prevSelected.setStyle(statuses.DATA);
 			self.prevSelected = null;
@@ -229,6 +241,7 @@ NeuronHandler = (function(constants, statuses) {
 
 	Handler.prototype.showPath = function(from, to) {
 		this.neurons.eachApply("showPath", from, to);
+		setSelectedData(this,to);
 	}
 
 	return Handler;
