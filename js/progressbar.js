@@ -117,6 +117,8 @@ loader = function(selector) {
 		if (this.inBar(point)) {
 			var where = this.location(point.x);
 			this.indicator.setPosition(where);
+			if (this.callbacks.setPosition)
+				this.callbacks.setPosition(where);
 		}
 	}
 
@@ -131,7 +133,14 @@ loader = function(selector) {
 			var toX = this.location(to.x);
 			//console.log(fromX, toX);
 			this.indicator.setRange(fromX, toX);
+			if (this.callbacks.setRange)
+				this.callbacks.setRange(from, to);
 		}
+	}
+
+
+	Loader.prototype.addCallbacks = function(pairs) {
+		_.extend(this.callbacks, pairs);
 	}
 
 	return new Loader();
@@ -158,3 +167,4 @@ function onMouseUp(event) {
 	startPoint = null;
 
 }
+function onFrame() {}

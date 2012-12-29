@@ -4,10 +4,15 @@ Neuron = (function(constants, statuses, styles) {
 	function Neuron() {
 		// Array of Point objects
 		this._segments = [];
+		// Array that holds the status of each neuron at that moment
 		this._status = [];
+		// Invisible path used for calculating curves when no path is drawn
 		this.basePath = new Path(); // used for calculating curves.
+		this.basePath.visible = false;
+		// Path used for drawing
 		this.path = new Path();
 		this.path.style = styles.path;
+		// Indicator showing current position
 		this.indicator = new Path.Circle(new Point(0, 0), styles.indicator.radius);
 		this.indicator.style = styles.indicator;
 		this.indicator.visible = false;
@@ -79,17 +84,6 @@ Neuron = (function(constants, statuses, styles) {
 		return closest;
 	}
 
-	// Generates the next iteration from current state.
-	// TODO: If vector is not supplied as argument, a random vector from data is used.
-	Neuron.nextIteration = function(data, neurons, callback) {
-		var vector = selectRandom(data);
-		var BMU = vector.findClosest(neurons);
-		// Make sure we call the callback once we are done with all the neurons
-		if (callback !== undefined)
-			var counter = counterCallback(callback, neurons.length);
-		neurons.eachApply("updateState", vector.segment(), BMU, counter);
-	}
-
 	/*
 		Drawing current states
 	*/
@@ -100,12 +94,12 @@ Neuron = (function(constants, statuses, styles) {
 			from = 0;
 			to = this.segmentCount()-1;
 		}
-		console.log("Showpath on", this);
 		if (from !== this.path.currentStart || to !== this.path.currentEnd) {
 			this.path.removeSegments();
-			//this.path.addSegments(this._segments.slice(from, to+1));
+			var segments = this._segments.slice(from, to+1);
+			//this.path.addSegments(segments);
 			var path = this.path;
-			_.each(this._segments.slice(from, to+1), function(p) {
+			_.each(segments, function(p) {
 				path.add(p);
 			})
 			this.path.currentStart = from;
@@ -113,7 +107,6 @@ Neuron = (function(constants, statuses, styles) {
 			this.path.smooth();
 		}
 		this.setIndicator(to-1, 1);
-
 		return this;
 	}
 
@@ -126,6 +119,10 @@ Neuron = (function(constants, statuses, styles) {
 		return this.path.curves[index];
 	}
 
+	Neuron.prototype.setStyle = function(style) {
+		_.extend(this.indicator.style, style.indicator);
+	}
+
 	// If segment is not provided, the last (drawn) segment is assumed
 	// if part is not given, 1 is used
 	Neuron.prototype.setIndicator = function(segment, part) {
@@ -135,18 +132,44 @@ Neuron = (function(constants, statuses, styles) {
 		}
 		// TODO: if part is not given...
 		if (this.segmentCount() == 1) {
-			_.extend(this.indicator.style, this._status[0].indicator);
+			this.setStyle(this._status[0]);
 			this.indicator.position = this._segments[0];
 		} else {
-			_.extend(this.indicator.style, this._status[segment+1].indicator);
+			this.setStyle(this._status[segment+1]);
 			this.indicator.position = this.getCurve(segment).getPoint(part);
 		}
 		this.indicator.visible = true;
 	}
 
-	// returns an array of neurons randomly positioned within the bounds
+	return Neuron;
+})(constants, NeuronStatus, PathStyles);	
+
+NeuronHandler = (function(constants, statuses) {
+	function Handler(neurons, data) {
+		this.neurons = neurons;
+		this.data = data;
+		this.selected = [null];
+		this.prevSelected = null;
+		this.iteration = 0;
+		this.callbacks = {};
+		this.setup();
+	}
+
+	Handler.prototype.setup = function() {
+		this.addCallbacks({
+			iteration: function(iteration) {
+				loader.indicator.setPosition(iteration / constants.iterations)
+			}
+		})
+	}
+
+	Handler.prototype.addCallbacks = function(pairs) {
+		_.extend(this.callbacks, pairs);
+	}
+
+	// Returns an Handler of neurons randomly positioned within the bounds
 	// If no bounds are given, the current window will be used.
-	Neuron.generate = function(limit, bounds) {
+	Handler.generate = function(data, limit, bounds) {
 		if (bounds === undefined) {
 			bounds = new Rectangle(
 				new Point(0,0), 
@@ -154,15 +177,59 @@ Neuron = (function(constants, statuses, styles) {
 			);
 		}
 		var size = new Point(bounds.size);
-		var result = [];
+		var neurons = [];
 		for (var i = 0; i < limit; i++) {
 			var neuron = new Neuron();
 			var point = new Point.random() * size + bounds.topLeft;
 			neuron.add(point, statuses.NEUTRAL);
-			result.push(neuron);
+			neurons.push(neuron);
 		}
-		return result;
+		return new Handler(neurons, data);
 	}
 
-	return Neuron;
-})(constants, NeuronStatus, PathStyles);	
+	// Generates the next iteration from current state.
+	Handler.prototype.nextIteration = function(callback) {
+		var vector = selectRandom(this.data);
+		var BMU = vector.findClosest(this.neurons);
+		// Make sure we call the callback once we are done with all the neurons
+		var self = this;
+		var done = function() {
+			self.iteration++;
+			console.log("iteration",self.iteration,"done");
+			if (self.callbacks.iteration) {
+				self.callbacks.iteration(self.iteration);
+			}
+			if (callback !== undefined)
+				callback.apply(arguments);
+		}
+		
+		var counter = counterCallback(done, this.neurons.length);
+		this.neurons.eachApply("updateState", vector.segment(), BMU, counter);
+		this.selected.push(vector);
+	}
+
+	function setSelectedData(self, iteration) {
+		if (self.prevSelected) {
+			self.prevSelected.setStyle(statuses.DATA);
+			self.prevSelected = null;
+		}
+		if (self.selected[iteration]) {
+			self.selected[iteration].setStyle(statuses.DATASELECTED);
+			self.prevSelected = self.selected[iteration];
+		}
+	}
+ 
+	Handler.prototype.showState = function(when) {
+		var result = when * constants.iterations;
+		var iteration = Math.floor(result);
+		var part = result % 1;
+		this.neurons.eachApply("setIndicator", iteration, part);
+		setSelectedData(this, iteration);
+	}
+
+	Handler.prototype.showPath = function(from, to) {
+		this.neurons.eachApply("showPath", from, to);
+	}
+
+	return Handler;
+})(constants, NeuronStatus);

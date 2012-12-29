@@ -1,6 +1,7 @@
 // This is where the magic happens. :)
 // TODO: make these local
-neurons = [], data = [];
+handler = null;
+data = [];
 var state = programStates.CREATING_DATA;
 
 tool.minDistance = 10;
@@ -15,11 +16,13 @@ function onMouseDrag(event) {
 function onKeyDown(event) {
 	if (state == programStates.CREATING_DATA && data.length > 10) {
 		state = programStates.START_ITERATING;
-		neurons = Neuron.generate(100);
-		neurons.eachApply("showPath");
+		handler = NeuronHandler.generate(data, 100);
+		handler.showPath();
 	} else {
-		Neuron.nextIteration(data, neurons);
-		neurons.eachApply("showPath");
+		handler.nextIteration();
+		handler.showPath();
+		//Neuron.nextIteration(data, neurons, function() {console.log("Done")});
+		//neurons.eachApply("showPath");
 	}
 }
 

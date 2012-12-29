@@ -48,6 +48,9 @@ function setState(when) {
 	});
 }
 
+// Let's say we have an array of objects and we want to do
+// for (obj in objects) obj.some_function(..args)
+// This shortens that to objects.eachApply("some_function", ..args)
 Array.prototype.eachApply = function(what) {
 	var args = Array.prototype.slice.call(arguments);
 	args.shift();
