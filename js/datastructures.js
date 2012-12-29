@@ -5,6 +5,7 @@ Neuron = (function(constants, statuses, styles) {
 		// Array of Point objects
 		this._segments = [];
 		this._status = [];
+		this.basePath = new Path(); // used for calculating curves.
 		this.path = new Path();
 		this.path.style = styles.path;
 		this.indicator = new Path.Circle(new Point(0, 0), styles.indicator.radius);
@@ -20,6 +21,8 @@ Neuron = (function(constants, statuses, styles) {
 			status = statuses.NEUTRAL;
 		this._segments.push(segment);
 		this._status.push(status)
+		this.basePath.add(segment);
+		this.basePath.smooth();
 		return this; // return a reference to this
 	}
 
@@ -45,8 +48,6 @@ Neuron = (function(constants, statuses, styles) {
 	/*
 		== Calculating next states ==
 	*/
-
-	var dimensions = ["x", "y"];
 	// Updates the neuron (by adding a new state at the end)
 	// Once updating is done, callback (if provided) is called
 	Neuron.prototype.updateState = function(vector, BMU, callback) {
@@ -59,7 +60,7 @@ Neuron = (function(constants, statuses, styles) {
 		if (distance < R) {
 			var I = constants.influence(distance, R);
 			var L = constants.learningRate(iteration, constants);
-			_.each(dimensions, function(dim) {
+			_.each(["x", "y"], function(dim) {
 				newSegment[dim] += L * I * (vector[dim] - newSegment[dim]);
 			});
 			newStatus = (this == BMU) ? statuses.BMU : statuses.INRANGE;
@@ -86,9 +87,7 @@ Neuron = (function(constants, statuses, styles) {
 		// Make sure we call the callback once we are done with all the neurons
 		if (callback !== undefined)
 			var counter = counterCallback(callback, neurons.length);
-		_.each(neurons, function(neuron) {
-			neuron.updateState(vector.segment(), BMU, counter);
-		});
+		neurons.eachApply("updateState", vector.segment(), BMU, counter);
 	}
 
 	/*
@@ -101,6 +100,7 @@ Neuron = (function(constants, statuses, styles) {
 			from = 0;
 			to = this.segmentCount()-1;
 		}
+		console.log("Showpath on", this);
 		if (from !== this.path.currentStart || to !== this.path.currentEnd) {
 			this.path.removeSegments();
 			//this.path.addSegments(this._segments.slice(from, to+1));
@@ -117,16 +117,12 @@ Neuron = (function(constants, statuses, styles) {
 		return this;
 	}
 
-	Neuron.showPaths = function(neurons, from, to) {
-		_.each(neurons, function(neuron) {
-			neuron.showPath(from, to);
-		});
-	}
-
 	// TODO: functions to toggle the visibility of parts
 
 	Neuron.prototype.getCurve = function(segment) {
 		var index = segment - this.path.currentStart;
+		if (index < 0 || index >= this.path.curves.length)
+			return this.basePath.curves[segment];
 		return this.path.curves[index];
 	}
 
@@ -146,7 +142,6 @@ Neuron = (function(constants, statuses, styles) {
 			this.indicator.position = this.getCurve(segment).getPoint(part);
 		}
 		this.indicator.visible = true;
-		
 	}
 
 	// returns an array of neurons randomly positioned within the bounds

@@ -38,3 +38,20 @@ function counterCallback(callback, count) {
 			callback.apply(arguments);
 	});
 }
+
+function setState(when) {
+	var result = when * constants.iterations;
+	var iteration = Math.floor(result);
+	var part = result % 1;
+	_.each(neurons, function(neuron) {
+		neuron.setIndicator(iteration, part);
+	});
+}
+
+Array.prototype.eachApply = function(what) {
+	var args = Array.prototype.slice.call(arguments);
+	args.shift();
+	_.each(this, function(element) {
+		element[what].apply(element, args);
+	});
+}
