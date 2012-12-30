@@ -187,8 +187,8 @@ NeuronHandler = (function(constants, statuses) {
 				self.showState.apply(self, arguments); 
 			}, 
 			setRange: function(from, to) {
-				self.setRange(from, to)
-			}
+				self.setRange(from, to);
+			},
 		});
 	};
 
@@ -232,7 +232,7 @@ NeuronHandler = (function(constants, statuses) {
 			if (callback !== undefined)
 				callback.apply(arguments);
 		};
-		
+		console.log(BMU);
 		var counter = counterCallback(done, this.neurons.length);
 		this.neurons.eachApply("updateState", vector.segment(), BMU, counter);
 		this.selected.push({vector: vector, BMU: BMU.segment()});
@@ -265,7 +265,7 @@ NeuronHandler = (function(constants, statuses) {
 		from = from * constants.iterations;
 		to = to * constants.iterations;
 		this.neurons.eachApply("showPath", from, to);
-	}
+	};
  
 	Handler.prototype.showState = function(when) {
 		var result = when * constants.iterations;

@@ -1,6 +1,6 @@
 // This is where the magic happens. :)
 // TODO: make these local
-var handler = null;
+handler = null;
 var data = [];
 state = programStates.CREATING_DATA;
 

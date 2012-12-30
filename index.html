@@ -9,6 +9,7 @@
         }
         body {
             font-size: 11px;
+            overflow: hidden;
         }
         #mainContainer {
             width:  100%;
@@ -17,15 +18,28 @@
             overflow: hidden;
         }
 	    #footer {
-			bottom: 5px;
-			right: 5px;
+            border-top-left-radius:20px;
+            border-top-right-radius:20px;
+            background-color:rgba(38,67,85,0.5);
+            width: 350px;
+			bottom: 0px;
+			right: 0px;
 			position: fixed;
 			font-family:verdana;
 			font-size: 13px;
-			text-align: right;
+			text-align: center;
+            margin: 0px;
 	    }
+        #footer h3 {
+            border-bottom: 1px solid #386785;
+            padding: .5em .25em;
+            margin: 0px;
+            opacity: 0.4;
+        }
+        #footer div {
+            padding: .5em .25em;
+        }
         #progressbar {
-            //background-color: #222;
             left: 0px;
             bottom: 0px;
             position: absolute;
@@ -39,26 +53,49 @@
         <script type="text/javascript" src="js/util.js"></script>
         <script type="text/javascript" src="js/styles.js"></script>
         <script type="text/javascript" src="js/datastructures.js"></script>
-        
         <script type="text/paperscript" src="js/progressbar.js" canvas="progressbar"></script>
     </head>
-    
     <body>
-    
     <div id="mainContainer">
         <canvas id="canvas" resize keepalive="true"></canvas>
         <canvas id="progressbar" height="60px" width="400px"></canvas>
     </div>
-    
 	
 	<div id="footer">
-        Project for course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
-	   <br/>Karl-Aksel Puulmann, winter 2012.
+        <h3>About</h3>
+        <div>
+<p>
+<ol>
+    <li>Draw some data using the mouse on the canvas.</li>
+    <li>Press space to generate neurons and to start the learning algorithm.</li>
+    <li>When the loading bar reaches the end, press space again to see the algorithm in action.</li>
+    <li>Use the mouse on the loading bar to view different states of the learning process</li>
+</ol>
+</p>
+This is a project for course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
+by </br>Karl-Aksel Puulmann, winter 2012.
+        </div>
+        <h3>Controls</h3>
+        <div>
+Controls shall be here
+        </div>
     </div>
     <script type="text/paperscript" src="js/logic.js" canvas="canvas"></script>
-    <script type="text/paperscript">
+    <script type="text/javascript">
 canvas.height = window.innerHeight-10;
 canvas.width = window.innerWidth-10;
+$(document).ready(function() {
+    $('div#footer> div').hide();
+    $('div#footer> h3').click(function() {
+        var nextdiv = $(this).next('div:hidden');
+        if (nextdiv.length == 1) {
+            nextdiv.slideDown()
+                .siblings('div:visible').slideUp('fast');
+        } else {
+            $(this).next('div:visible').slideUp('fast');
+        }
+    });
+});
     </script>
     </body>
 </html>
