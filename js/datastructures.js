@@ -1,6 +1,8 @@
 // TODO: PaperPath should be generated on demand, data constructor
 paper.install(window);
+paper.setup( document.getElementById('canvas'));
 Neuron = (function(constants, statuses, styles) {
+	var lowLayer = new paper.Group();
 	function Neuron() {
 		// Array of Point objects
 		this._segments = [];
@@ -15,6 +17,7 @@ Neuron = (function(constants, statuses, styles) {
 		this.path = new Path();
 		this.path.style = styles.path;
 		this.path._changed = function() {};
+		layers.path.addChild(this.path);
 		// Indicator showing current position
 		this.indicator = new Path.Circle(new Point(0, 0), styles.indicator.radius);
 		this.indicator.style = styles.indicator;
@@ -208,7 +211,7 @@ NeuronHandler = (function(constants, statuses) {
 		var size = new Point(bounds.size);
 		var neurons = [];
 		for (var i = 0; i < limit; i++) {
-			var neuron = new Neuron();
+			var neuron = new Neuron(layers);
 			//var point = new Point.random() * size + bounds.topLeft;
 			var point = Point.random().multiply(size).add(bounds.topLeft);
 			neuron.add(point, statuses.NEUTRAL);
@@ -232,7 +235,7 @@ NeuronHandler = (function(constants, statuses) {
 			if (callback !== undefined)
 				callback.apply(arguments);
 		};
-		console.log(BMU);
+		//console.log(BMU);
 		var counter = counterCallback(done, this.neurons.length);
 		this.neurons.eachApply("updateState", vector.segment(), BMU, counter);
 		this.selected.push({vector: vector, BMU: BMU.segment()});
@@ -258,6 +261,7 @@ NeuronHandler = (function(constants, statuses) {
 			prevCircle = new Path.Circle(selected.BMU, radius);
 			prevCircle.fillColor = "#F00";
 			prevCircle.opacity = 0.2;
+			layers.path.addChild(prevCircle);
 		}
 	}
 

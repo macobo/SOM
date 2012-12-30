@@ -2,7 +2,12 @@
 // TODO: make these local
 handler = null;
 var data = [];
+layers = {
+	path: new Layer(),
+	indicator: new Layer()
+}
 state = programStates.CREATING_DATA;
+
 
 tool.minDistance = 10;
 
