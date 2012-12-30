@@ -164,7 +164,7 @@ loader = function(selector, styles) {
 			var toX = this.location(to.x);
 			this.indicator.setRange(fromX, toX);
 			if (this.callbacks.setRange)
-				this.callbacks.setRange(from, to);
+				this.callbacks.setRange(fromX, toX);
 		}
 	}
 
@@ -188,10 +188,11 @@ loader = function(selector, styles) {
 var startPoint = null;
 var dragging = false;
 function onMouseDrag(event) {
+
 	pause();
-	if (!dragging && startPoint !== null)
+	if (!dragging && startPoint !== null && loader.inBar(event.point))
 		dragging = Math.abs(event.point.x - startPoint.x) > 9;
-	if (dragging && loader.inBar(event.point)) {
+	if (dragging) {
 		loader.setRange(startPoint, event.point);
 	}
 }
@@ -211,4 +212,7 @@ function onMouseUp(event) {
 
 }
 function onFrame() {}
-function onKeyDown() {}
+function onKeyDown(event) {
+	console.log(event);
+	togglePlaying();
+}

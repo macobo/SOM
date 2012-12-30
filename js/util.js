@@ -56,3 +56,14 @@ Array.prototype.eachApply = function(what) {
 		element[what].apply(element, args);
 	});
 }
+
+function encodeUnsafeJSON(object) {
+	var new_object = {};
+	for (var key in object) {
+		new_object[key] = object[key];	
+		if (object[key] instanceof Function)
+			new_object[key] = object[key].toString();
+	}
+	arguments[0] = new_object
+	return JSON.stringify(new_object,null, "\t");
+}

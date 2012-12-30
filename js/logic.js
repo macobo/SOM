@@ -44,6 +44,11 @@ window.pause = function() {
 	}
 }
 
+window.togglePlaying = function() {
+	if (state == programStates.PLAYING) pause();
+	else if (state == programStates.PAUSED) play();
+}
+
 var lastTime;
 function onKeyDown(event) {
 	if (state == programStates.CREATING_DATA && data.length > 10) {

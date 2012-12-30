@@ -185,12 +185,16 @@ NeuronHandler = (function(constants, statuses) {
 			}
 		});
 		var self = this;
+		var timer;
 		loader.addCallbacks({
 			setPosition: function() { 
 				self.showState.apply(self, arguments); 
 			}, 
 			setRange: function(from, to) {
-				self.setRange(from, to);
+				clearTimeout(timer);
+				timer = setTimeout(function() {
+					self.setRange(from, to);
+				}, 100);
 			},
 		});
 	};
@@ -235,7 +239,6 @@ NeuronHandler = (function(constants, statuses) {
 			if (callback !== undefined)
 				callback.apply(arguments);
 		};
-		//console.log(BMU);
 		var counter = counterCallback(done, this.neurons.length);
 		this.neurons.eachApply("updateState", vector.segment(), BMU, counter);
 		this.selected.push({vector: vector, BMU: BMU.segment()});
@@ -260,15 +263,17 @@ NeuronHandler = (function(constants, statuses) {
 			var radius = constants.neighborhoodRadius(iteration, constants);
 			prevCircle = new Path.Circle(selected.BMU, radius);
 			prevCircle.fillColor = "#F00";
-			prevCircle.opacity = 0.2;
+			prevCircle.opacity = 0.15;
 			layers.path.addChild(prevCircle);
 		}
 	}
 
 	Handler.prototype.setRange = function(from, to) {
-		from = from * constants.iterations;
-		to = to * constants.iterations;
+		from = Math.floor(from * constants.iterations);
+		to = Math.floor(to * constants.iterations);
 		this.neurons.eachApply("showPath", from, to);
+		//this.neurons.eachApply("setIndicator", to, 0);
+		paper.view.draw();
 	};
  
 	Handler.prototype.showState = function(when) {
@@ -277,7 +282,8 @@ NeuronHandler = (function(constants, statuses) {
 		if (iteration >= this.iteration)
 			return false;
 		var part = result % 1;
-		this.neurons.eachApply("showPath", 0, iteration+1);
+		var from = Math.floor(loader.status().start * constants.iterations)
+		this.neurons.eachApply("showPath", from, iteration+1);
 		this.neurons.eachApply("setIndicator", iteration, part);
 		setSelectedData(this, iteration+1, part);
 		if (this.callbacks.showState)
