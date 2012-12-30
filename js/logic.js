@@ -1,8 +1,8 @@
 // This is where the magic happens. :)
 // TODO: make these local
-handler = null;
-data = [];
-var state = programStates.CREATING_DATA;
+var handler = null;
+var data = [];
+state = programStates.CREATING_DATA;
 
 tool.minDistance = 10;
 
@@ -24,15 +24,19 @@ function iterate() {
 		state = programStates.PAUSED;
 }
 
-function play() {
-	console.log("PLAYING");
-	state = programStates.PLAYING;
-	state.start = lastTime;
+window.play = function() {
+	if (state == programStates.PAUSED) {
+		console.log("PLAYING");
+		state = programStates.PLAYING;
+		state.start = lastTime;
+	}
 }
 
-function pause() {
-	console.log("PAUSING");
-	state = programStates.PAUSED;
+window.pause = function() {
+	if (state == programStates.PLAYING) {
+		console.log("PAUSING");
+		state = programStates.PAUSED;
+	}
 }
 
 var lastTime;
@@ -53,8 +57,10 @@ function onKeyDown(event) {
 function onFrame(event) {
 	lastTime = event.time;
 	if (state == programStates.PLAYING) {
-		var when = (event.time - state.start) / constants.durnation;
-		if (!handler.showState(when))
+		var barState = loader.status();
+		var when = barState.start + 
+			(event.time - state.start) * constants.animation_speed;
+		if (when > barState.end || !handler.showState(when))
 			pause();
 	}
 }

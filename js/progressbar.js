@@ -1,19 +1,31 @@
 var Indicator = function(styles) {
 
-	function Indicator(parentRectangle) {
+	function Indicator(parentRectangle, edgeRectangle) {
 		this.parent = parentRectangle;
 		this.top = this.parent.topLeft;
 		this.current = 0;
-		this.range = null;
+		this.range = edgeLines(this.parent, edgeRectangle, styles.range);
 		this.indicator = new Path.Line(this.top, this.parent.bottomLeft);
 		_.extend(this.indicator.style, styles.indicator);
 	}
 
-	Indicator.prototype.setPosition = function(where) {
-		if (this.range !== null) {
-			this.range.remove();
-			this.range = null;
+	function edgeLines(r1, r2, style) {
+		var topLine = new Path.Line(
+			new Point(r1.left, r1.top-3), new Point(r1.right, r1.top-3));
+		_.extend(topLine.style, style);
+		var bottomLine = new Path.Line(
+			new Point(r1.left, r1.bottom+3), new Point(r1.right, r1.bottom+3));
+		_.extend(bottomLine.style, style);
+		topLine.visible = false;
+		bottomLine.visible = false;
+		return {
+			top: topLine, bottom: bottomLine,
+			width: r1.width, maxWidth: r1.width,
+			left: 0, right: 1
 		}
+	}
+
+	Indicator.prototype.setPosition = function(where) {
 		var target = this.parent.topLeft + 
 			new Point(this.parent.width * where, 0);
 		this.indicator.translate(target - this.top);
@@ -23,18 +35,25 @@ var Indicator = function(styles) {
 	}
 
 	Indicator.prototype.setRange = function(left, right) {
-		if (this.range !== null) {
-			this.range.remove();
-			this.range = null;
-		}
-		this.indicator.visible = false;
-		var top = this.parent.topLeft.clone();
-		top.x += this.parent.width * left;
-		var bottom = this.parent.bottomLeft.clone();
-		bottom.x += this.parent.width * right;
-		var rect = new Rectangle(top, bottom);
-		this.range = new Path.RoundRectangle(rect, 3);
-		_.extend(this.range.style, styles.indicator);
+		this.range.top.visible = true;
+		this.range.bottom.visible = true;
+		var width = (right - left) * this.range.maxWidth;
+		var delta = new Point((left - this.range.left) * this.range.maxWidth, 0);
+		var scale = width / this.range.width;
+		if (width == 0) return;
+		this.range.top.translate(delta);
+		this.range.bottom.translate(delta);
+		this.range.top.scale(scale, 1, this.range.top.segments[0].point);
+		this.range.bottom.scale(scale, 1, this.range.bottom.segments[0].point);
+		this.range.width = width;
+		this.range.left = left;
+		this.range.right = right;
+	}
+
+	Indicator.prototype.resetRange = function() {
+		this.setRange(0, 1);
+		this.range.top.visible = false;
+		this.range.bottom.visible = false;
 	}
 
 	return Indicator;
@@ -49,7 +68,7 @@ loader = function(selector, styles) {
 		this.center();
 		this.callbacks = {};
 		this.setLoaded(0.001);
-		this.indicator = new Indicator(this.loadBar.rectangle);
+		this.indicator = new Indicator(this.loadBar.rectangle, rect);
 	}
 
 	function drawLoader(style, top, bottom) {
@@ -155,11 +174,11 @@ loader = function(selector, styles) {
 
 	Loader.prototype.status = function() {
 		var result = {
-			"start": 0,
-			"end": this.loaded.lastAmount,
-			"diff": this.loaded.lastAmount,
+			"start": this.indicator.range.left,
+			"end": Math.min(this.indicator.range.right, this.loaded.lastAmount),
 			"indicator": this.indicator.current
 		}
+		result.diff = result.end - result.start;
 		return result;
 	}
 
@@ -169,6 +188,7 @@ loader = function(selector, styles) {
 var startPoint = null;
 var dragging = false;
 function onMouseDrag(event) {
+	pause();
 	if (!dragging && startPoint !== null)
 		dragging = Math.abs(event.point.x - startPoint.x) > 9;
 	if (dragging && loader.inBar(event.point)) {
@@ -177,10 +197,12 @@ function onMouseDrag(event) {
 }
 
 function onMouseDown(event) {
+	pause();
 	if (loader.inBar(event.point)) {
 		startPoint = event.point;
 		dragging = false;
 		loader.setPosition(event.point);
+		loader.indicator.resetRange();
 	}
 }
 
@@ -189,3 +211,4 @@ function onMouseUp(event) {
 
 }
 function onFrame() {}
+function onKeyDown() {}

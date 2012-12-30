@@ -118,7 +118,8 @@ Neuron = (function(constants, statuses, styles) {
 			_.each(segments, function(p) { path.add(p); });
 			this.path.currentStart = from;
 			this.path.currentEnd = to;
-			//this.path.smooth();
+			if (constants.smoothPaths)
+				this.path.smooth();
 		}
 		return this;
 	};
@@ -184,6 +185,9 @@ NeuronHandler = (function(constants, statuses) {
 		loader.addCallbacks({
 			setPosition: function() { 
 				self.showState.apply(self, arguments); 
+			}, 
+			setRange: function(from, to) {
+				self.setRange(from, to)
 			}
 		});
 	};
@@ -231,20 +235,36 @@ NeuronHandler = (function(constants, statuses) {
 		
 		var counter = counterCallback(done, this.neurons.length);
 		this.neurons.eachApply("updateState", vector.segment(), BMU, counter);
-		this.selected.push(vector);
+		this.selected.push({vector: vector, BMU: BMU.segment()});
 	};
 
-	function setSelectedData(self, iteration) {
+	var prevCircle = null;
+	function setSelectedData(self, iteration, part) {
 		if (iteration === undefined)
 			iteration = self.iteration;
 		if (self.prevSelected) {
 			self.prevSelected.setStyle(statuses.DATA);
 			self.prevSelected = null;
 		}
-		if (self.selected[iteration]) {
-			self.selected[iteration].setStyle(statuses.DATASELECTED);
-			self.prevSelected = self.selected[iteration];
+		if (prevCircle !== null) {
+			prevCircle.remove();
+			prevCircle = null;
 		}
+		var selected = self.selected[iteration];
+		if (selected) {
+			selected.vector.setStyle(statuses.DATASELECTED);
+			self.prevSelected = selected.vector;
+			var radius = constants.neighborhoodRadius(iteration, constants);
+			prevCircle = new Path.Circle(selected.BMU, radius);
+			prevCircle.fillColor = "#F00";
+			prevCircle.opacity = 0.2;
+		}
+	}
+
+	Handler.prototype.setRange = function(from, to) {
+		from = from * constants.iterations;
+		to = to * constants.iterations;
+		this.neurons.eachApply("showPath", from, to);
 	}
  
 	Handler.prototype.showState = function(when) {
@@ -255,7 +275,7 @@ NeuronHandler = (function(constants, statuses) {
 		var part = result % 1;
 		this.neurons.eachApply("showPath", 0, iteration+1);
 		this.neurons.eachApply("setIndicator", iteration, part);
-		setSelectedData(this, iteration+1);
+		setSelectedData(this, iteration+1, part);
 		if (this.callbacks.showState)
 			this.callbacks.showState(when);
 		return true;

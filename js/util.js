@@ -1,11 +1,11 @@
 constants = {
-	radius: 1000,
+	radius: 800,
 	iterations: 100,
 	neurons: 100,
 	learning: 0.3,
-	showPaths: false,
+	showPaths: true,
 	smoothPaths: true,
-	durnation: 30,
+	animation_speed: 0.01,
 	influence: function(distance, radius) {
 		return Math.exp(-1.0 * distance * distance / (2 * radius * radius));
 	},

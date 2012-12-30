@@ -20,6 +20,10 @@ LoadbarStyles = {
 		strokeWidth: 3,
 		strokeColor: "#F00",
 		strokeCap: "round"
+	},
+	range: {
+		strokeWidth: 2,
+		strokeColor: "#FF0"
 	}
 }
 
