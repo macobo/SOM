@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                background-color: #DDDDDD;
+                font: 30px sans-serif;
+            }
+            h3 {
+                font-size: 14px;
+                margin: 0px;
+            }
+            body {
+                font-size: 11px;
+            }
+            h4 {
+                font-size: 13px;
+            }
+            ul, h4 {
+                margin: 0px;
+                padding: 0px;
+            }
+            div {
+                display: inline-block;
+            }
+            div.infobox {
+                border-style:solid;
+                border-width:1px;
+                width: 500px;
+		padding: 3px;
+            }
+            .blockingDiv {
+                display: block;
+            }
+            #controlsPanel h2 {
+                text-align: center;
+            }
+            #controlsPanel {
+                font-size: 12px;
+                width: 200px;
+                position: fixed;
+                top: 90px;
+                right: 10px;
+                padding: 10px;
+                background-color: rgba(66, 66, 66, 0.7);
+                color: white;
+                border-radius: 8px;
+                box-shadow: 5px 5px 10px rgba(0, 0, 0, 0.5);
+                cursor: default;
+            }
+            #info {
+                position: float;
+                left: 250px;
+            }
+	    #footer {
+		bottom: 5px;
+		right: 5px;
+		position: fixed;
+		font-family:verdana;
+		font-size: 13px;
+		text-align: right;
+	    }
+        </style>
+        <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+        <title>Task 6: SOM</title>
+        <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+        <script type="text/javascript" src="som.js"></script>
+        <script type="text/javascript" src="slider.js"></script>
+        <script>
+            var is2d = false;
+            var size = 5;
+            var squareSize = 20;
+	    var iters = 1000;
+	    
+	    //dataFile = "rgbdata.json";
+	    dataFile = "countriesData.json";
+            $(function ($) {
+                //drawGrid();
+                $(".sliderControl").each(function () {
+                    $(this).initialize();
+                });
+            });
+
+            function drawGrid() {
+                console.log(is2d, size, squareSize);
+                start($, dataFile, is2d, size, squareSize, iters);
+            }
+
+            function gridSize(value) {
+                size = Math.round(value);
+                drawGrid();
+            };
+
+            function squareSizeUpdate(value) {
+                squareSize = Math.round(value);
+                drawGrid();
+            }
+
+            function updateDim(value) {
+                is2d = value > 1.5;
+                drawGrid();
+            }
+
+            function updateIters(value) {
+                iters = Math.round(value);
+                drawGrid();
+            }
+        </script>
+    </head>
+    
+    <body>
+        <div id="controlsPanel">
+             <h2>Controls</h2>
+
+            <div class="sliderControl">Grid size:
+                <div class="SliderLabel"></div>
+                <div class="Slider" data-width="200" data-min="2" data-max="2500"
+                data-default="25" data-updater="gridSize"></div>
+            </div>
+            <div class="sliderControl">Square size:
+                <div class="SliderLabel"></div>
+                <div class="Slider" data-width="200" data-min="2" data-max="40"
+                data-default="20" data-updater="squareSizeUpdate"></div>
+            </div>
+            <div class="sliderControl">Dimensions:
+                <div class="SliderLabel"></div>
+                <div class="Slider" data-width="200" data-min="1" data-max="2" data-default="2"
+                data-updater="updateDim"></div>
+            </div>
+            <div class="sliderControl">Iterations:
+                <div class="SliderLabel"></div>
+                <div class="Slider" data-width="200" data-min="10" data-max="2000" data-default="300"
+                data-updater="updateIters"></div>
+            </div>
+            <div>
+		<p>Move your mouse over the squares.</p>
+                <p>Note that the colors of each square are only based on the values of first
+                three attributes of each country.</p>
+	    </div>
+	    <a href="#" onclick="dataFile = 'countriesData.json; drawGrid();">Countries(original)</a><br/>
+	    <a href="#" onclick="dataFile = 'rgbdata.json'; drawGrid();">RGB</a><br/>
+	    <a href="#" onclick="dataFile = 'countries1.json'; drawGrid();">Countries (first two log)</a>
+        </div>
+        <div class="blockingDiv">
+            <div style="margin: 5px">
+		<h3>Original, randomized grid:</h3>
+                <canvas id="a" height="0px" style="border:0px solid gray"></canvas>
+            </div>
+            <div style="margin: 5px">
+		<h3>Trained SOM:</h3>
+                <canvas id="som" height="0px" style="border:0px solid gray"></canvas>
+            </div>
+        </div>
+        <div id="info"></div>
+	
+	<div id="footer">HW5 bonus in course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
+	<br/>Karl-Aksel Puulmann, fall 2012.</div>
+    </body>
+</html>
