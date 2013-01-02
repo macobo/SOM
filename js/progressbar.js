@@ -213,6 +213,6 @@ function onMouseUp(event) {
 }
 function onFrame() {}
 function onKeyDown(event) {
-	console.log(event);
-	togglePlaying();
+	if (event.key == "space")
+		togglePlaying();
 }

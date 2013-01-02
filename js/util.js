@@ -1,23 +1,26 @@
-constants = {
-	radius: 800,
-	iterations: 100,
-	neurons: 100,
-	learning: 0.3,
-	showPaths: true,
-	smoothPaths: true,
-	animation_speed: 0.01,
-	influence: function(distance, radius) {
-		return Math.exp(-1.0 * distance * distance / (2 * radius * radius));
-	},
-	neighborhoodRadius: function(iteration, constants) {
-		return constants.radius * Math.exp(-1.0 * iteration / constants.time);
-	},
-	learningRate: function(iteration, constants) {
-		return constants.learning * Math.exp(-1.0 * iteration / constants.time);
+function defaultConstants() {
+	constants = {
+		radius: 800,
+		iterations: 100,
+		neurons: 100,
+		learning: 0.3,
+		showPaths: true,
+		smoothPaths: true,
+		animation_speed: 0.01,
+		influence: function(distance, radius) {
+			return Math.exp(-1.0 * distance * distance / (2 * radius * radius));
+		},
+		neighborhoodRadius: function(iteration, constants) {
+			return constants.radius * Math.exp(-1.0 * iteration / constants.time);
+		},
+		learningRate: function(iteration, constants) {
+			return constants.learning * Math.exp(-1.0 * iteration / constants.time);
+		}
 	}
+	constants.time = constants.iterations / Math.log(constants.radius);
+	return constants;
 }
-constants.time = constants.iterations / Math.log(constants.radius);
-
+constants = defaultConstants();
 
 programStates = Object.freeze({
 	NONE: 0,
@@ -57,13 +60,24 @@ Array.prototype.eachApply = function(what) {
 	});
 }
 
+// Don't do this at home, kids
 function encodeUnsafeJSON(object) {
 	var new_object = {};
 	for (var key in object) {
 		new_object[key] = object[key];	
-		if (object[key] instanceof Function)
-			new_object[key] = object[key].toString();
+		if (object[key] instanceof Function) {
+			new_object[key] = unescape(object[key].toString());
+		}
 	}
-	arguments[0] = new_object
-	return JSON.stringify(new_object,null, "\t");
+	return JSON.stringify(new_object,null, "    ");
+}
+
+function parseUnsafeJSON(json) {
+	object = JSON.parse(json);
+	for (var key in object) {
+		if (typeof object[key] === "string" && object[key].indexOf("function") == 0) {
+			object[key] = eval("("+object[key]+")");
+		}
+	}
+	return object;
 }
