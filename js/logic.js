@@ -19,14 +19,21 @@ function onMouseDrag(event) {
 	}
 }
 
+function onMouseDown(event) {
+	if (state == programStates.CREATING_DATA) {
+		var neuron = new Neuron().add(event.point, NeuronStatus.DATA);
+		neuron.setIndicator();
+		data.push(neuron.showPath());
+	}
+}
+
 function iterate() {
 	if (handler.iteration < constants.iterations) {
 		handler.nextIteration(function() {
 			//handler.showPath();
 			setTimeout(iterate, 20);
 		});
-	} else 
-		state = programStates.PAUSED;
+	} //else state = programStates.PAUSED;
 }
 
 window.play = function() {
@@ -51,14 +58,16 @@ window.togglePlaying = function() {
 
 var lastTime;
 function onKeyDown(event) {
+	if (event.key != "space")
+		return;
 	if (state == programStates.CREATING_DATA && data.length > 10) {
-		state = programStates.ITERATING;
+		state = programStates.PLAYING;
 		handler = NeuronHandler.generate(data, constants.neurons);
-		handler.showState(0);
 		iterate();
-	} else if (event.key == "space" && state == programStates.PAUSED) {
+		handler.showState(0);
+	} else if (state == programStates.PAUSED) {
 		play();
-	} else if (event.key == "space" && state == programStates.PLAYING) {
+	} else if (state == programStates.PLAYING) {
 		pause();
 	}
 }
