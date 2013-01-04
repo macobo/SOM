@@ -1,21 +1,19 @@
 function defaultConstants() {
 	constants = {
+		// initial map radius
 		radius: 800,
+		// How long the learning will last
 		iterations: 100,
+		// How many neurons will be generated
 		neurons: 100,
+		// Learning constant
 		learning: 0.3,
 		showPaths: true,
 		smoothPaths: true,
 		animation_speed: 0.01,
-		influence: function(distance, radius) {
-			return Math.exp(-1.0 * distance * distance / (2 * radius * radius));
-		},
-		neighborhoodRadius: function(iteration, constants) {
-			return constants.radius * Math.exp(-1.0 * iteration / constants.time);
-		},
-		learningRate: function(iteration, constants) {
-			return constants.learning * Math.exp(-1.0 * iteration / constants.time);
-		}
+		influence: function(distance, radius) { return Math.exp(-1.0 * distance * distance / (2 * radius * radius)); },
+		neighborhoodRadius: function(iteration, constants) { return constants.radius * Math.exp(-1.0 * iteration / constants.time); },
+		learningRate: function(iteration, constants) { return constants.learning * Math.exp(-1.0 * iteration / constants.time); }
 	}
 	constants.time = constants.iterations / Math.log(constants.radius);
 	return constants;

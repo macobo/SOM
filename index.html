@@ -1,36 +1,36 @@
 <!DOCTYPE html>
 <html>
     <head>
- <style type="text/css">
-.button {
-    -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
-    -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
-    box-shadow:inset 0px 1px 0px 0px #ffffff;
-    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #dfdfdf) );
-    background:-moz-linear-gradient( center top, #ededed 5%, #dfdfdf 100% );
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf');
-    background-color:#ededed;
-    -moz-border-radius:6px;
-    -webkit-border-radius:6px;
-    border-radius:6px;
-    border:1px solid #dcdcdc;
-    display:inline-block;
-    color:#777777;
-    font-family:Verdana;
-    font-size:15px;
-    font-weight:bold;
-    padding:3px 24px;
-    text-decoration:none;
-    text-shadow:1px 1px 0px #ffffff;
-}.button:hover {
-    background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #dfdfdf), color-stop(1, #ededed) );
-    background:-moz-linear-gradient( center top, #dfdfdf 5%, #ededed 100% );
-    filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#ededed');
-    background-color:#dfdfdf;
-}.button:active {
-    position:relative;
-    top:1px;
-}
+    <style type="text/css">
+        .button {
+            -moz-box-shadow:inset 0px 1px 0px 0px #ffffff;
+            -webkit-box-shadow:inset 0px 1px 0px 0px #ffffff;
+            box-shadow:inset 0px 1px 0px 0px #ffffff;
+            background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #ededed), color-stop(1, #dfdfdf) );
+            background:-moz-linear-gradient( center top, #ededed 5%, #dfdfdf 100% );
+            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#dfdfdf');
+            background-color:#ededed;
+            -moz-border-radius:6px;
+            -webkit-border-radius:6px;
+            border-radius:6px;
+            border:1px solid #dcdcdc;
+            display:inline-block;
+            color:#777777;
+            font-family:Verdana;
+            font-size:15px;
+            font-weight:bold;
+            padding:3px 24px;
+            text-decoration:none;
+            text-shadow:1px 1px 0px #ffffff;
+        }.button:hover {
+            background:-webkit-gradient( linear, left top, left bottom, color-stop(0.05, #dfdfdf), color-stop(1, #ededed) );
+            background:-moz-linear-gradient( center top, #dfdfdf 5%, #ededed 100% );
+            filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#dfdfdf', endColorstr='#ededed');
+            background-color:#dfdfdf;
+        }.button:active {
+            position:relative;
+            top:1px;
+        }
         body {
             background-color: #25adf0;
             font: 30px sans-serif;
@@ -68,6 +68,9 @@
         #footer div {
             padding: .5em .25em;
         }
+        #footer li {
+            text-align: left;
+        }
         textarea {
             width: 95%;
             height: 20em;
@@ -80,7 +83,7 @@
         }
         </style>
         <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
-        <title>SOM</title>
+        <title>Self-organizing map visualization</title>
         <script type="text/javascript" src="js/paper.js"></script>
         <script type="text/javascript" src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
         <script type="text/javascript" src="http://underscorejs.org/underscore.js"></script>
@@ -98,17 +101,33 @@
 	<div id="footer">
         <h3>About</h3>
         <div>
-<p>
-<ol>
-    <li>Draw some data using the mouse on the canvas.</li>
-    <li>Press space to generate neurons and to start the learning algorithm.</li>
-    <li>When the loading bar reaches the end, press space again to see the algorithm in action.</li>
-    <li>Use the mouse on the loading bar to view different states of the learning process</li>
-</ol>
-<p>Since the animations are CPU-intensive (hey, it runs on javascript!), I hope you're using a modern web browser and a fast computer. </p>
-</p>
-This is a project for course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
-by </br>Karl-Aksel Puulmann, winter 2012.
+            <ol>
+                <li>Draw some data using the mouse on the canvas.</li>
+                <li>Press space to generate neurons and to start the learning algorithm.</li>
+                <li>When the loading bar reaches the end, press space again to see the algorithm in action.</li>
+                <li>Use the mouse on the loading bar to view different states of the learning process.
+                    <ul>
+                        <li>Drag along the loading bar to show only parts of the animation.</li>
+                    </ul>
+                </li>
+                <li>
+                    To change the constants used for the calculations, refresh this page, click on
+                    the controls menu and update the constants/functions used there before starting
+                    the calculations.
+                </li>
+            </ol>
+            <p>Since the animations are CPU-intensive (hey, it runs on javascript!), I hope you're using a modern web browser and a fast computer. </p>
+
+            <p>To learn more about Self-Organizing maps, please look into the following resources:</p>
+            <ul>
+                <li><a href="old">Other implementation of SOM</a></li>
+                <li><a href="http://www.cs.bham.ac.uk/~jxb/NN/l16.pdf">http://www.cs.bham.ac.uk/~jxb/NN/l16.pdf</a></li>
+                <li><a href="http://www.ai-junkie.com/ann/som/som1.html">SOM tutorial</a></li>
+            </ul>
+
+            This is a project for course <a href="https://courses.cs.ut.ee/2012/dm/fall">Data Mining</a>
+            by </br>Karl-Aksel Puulmann, winter 2012.
+
         </div>
         <h3>Controls</h3>
         <div>
