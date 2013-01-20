@@ -64,6 +64,7 @@ function onKeyDown(event) {
 		state = programStates.PLAYING;
 		handler = NeuronHandler.generate(data, constants.rows, constants.cols);
 		iterate();
+		state.start = lastTime;
 		handler.showState(0);
 	} else if (state == programStates.PAUSED) {
 		play();

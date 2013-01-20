@@ -11,7 +11,7 @@ function defaultConstants() {
 		learning: 0.3,
 		showPaths: true,
 		smoothPaths: true,
-		animation_speed: 0.02,
+		animation_speed: 0.01,
 		influence: function(distance, radius) { return Math.exp(-1.0 * distance * distance / (2 * radius * radius)); },
 		neighborhoodRadius: function(iteration, constants) { return constants.radius(constants) * Math.exp(-1.0 * iteration / constants.time); },
 		learningRate: function(iteration, constants) { return constants.learning * Math.exp(-1.0 * iteration / constants.time); }
