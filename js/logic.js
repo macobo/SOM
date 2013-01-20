@@ -62,7 +62,7 @@ function onKeyDown(event) {
 		return;
 	if (state == programStates.CREATING_DATA && data.length > 10) {
 		state = programStates.PLAYING;
-		handler = NeuronHandler.generate(data, constants.neurons);
+		handler = NeuronHandler.generate(data, constants.rows, constants.cols);
 		iterate();
 		handler.showState(0);
 	} else if (state == programStates.PAUSED) {

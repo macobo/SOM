@@ -3,7 +3,8 @@ paper.install(window);
 paper.setup( document.getElementById('canvas'));
 Neuron = (function(constants, statuses, styles) {
 	var lowLayer = new paper.Group();
-	function Neuron() {
+	function Neuron(x, y) {
+		this.gridPoint = new Point(x, y);
 		// Array of Point objects
 		this._segments = [];
 		// Array that holds the status of each neuron at that moment
@@ -68,7 +69,7 @@ Neuron = (function(constants, statuses, styles) {
 
 		var iteration = this.segmentCount();
 		var R = constants.neighborhoodRadius(iteration, constants);
-		var distance = BMU.segment().getDistance(newSegment);
+		var distance = BMU.gridPoint.getDistance(this.gridPoint);
 		if (distance < R) {
 			var I = constants.influence(distance, R);
 			var L = constants.learningRate(iteration, constants);
@@ -205,7 +206,7 @@ NeuronHandler = (function(constants, statuses) {
 
 	// Returns an Handler of neurons randomly positioned within the bounds
 	// If no bounds are given, the current window will be used.
-	Handler.generate = function(data, limit, bounds) {
+	Handler.generate = function(data, rows, cols, bounds) {
 		if (bounds === undefined) {
 			bounds = new Rectangle(
 				new Point(0,0), 
@@ -214,13 +215,14 @@ NeuronHandler = (function(constants, statuses) {
 		}
 		var size = new Point(bounds.size);
 		var neurons = [];
-		for (var i = 0; i < limit; i++) {
-			var neuron = new Neuron(layers);
-			//var point = new Point.random() * size + bounds.topLeft;
-			var point = Point.random().multiply(size).add(bounds.topLeft);
-			neuron.add(point, statuses.NEUTRAL);
-			neurons.push(neuron);
-		}
+		for (var row = 0; row < rows; row++)
+			for (var col = 0; col < cols; col++) {
+				var neuron = new Neuron(row, col);
+				//var point = new Point.random() * size + bounds.topLeft;
+				var point = Point.random().multiply(size).add(bounds.topLeft);
+				neuron.add(point, statuses.NEUTRAL);
+				neurons.push(neuron);
+			}
 		return new Handler(neurons, data);
 	};
 
@@ -263,7 +265,7 @@ NeuronHandler = (function(constants, statuses) {
 			var radius = constants.neighborhoodRadius(iteration, constants);
 			prevCircle = new Path.Circle(selected.BMU, radius);
 			prevCircle.fillColor = "#F00";
-			prevCircle.opacity = 0.15;
+			prevCircle.opacity = 0.00; //0.15;
 			layers.path.addChild(prevCircle);
 		}
 	}
